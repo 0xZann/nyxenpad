@@ -302,6 +302,11 @@ html.js .reveal.in{opacity:1;transform:none}
 .tc-top{display:flex;gap:12px;align-items:center;min-width:0}
 .timg{width:52px;height:52px;border-radius:15px;overflow:hidden;background:linear-gradient(135deg,#6d28d9,#f472b6);display:grid;place-items:center;font:600 16px var(--display);color:#fff;flex:none}
 .timg img{width:100%;height:100%;object-fit:cover;display:block;background:#fff}
+.av{width:100%;height:100%;display:grid;place-items:center;position:relative;overflow:hidden;font-style:normal;color:#fff}
+.av::before{content:"";position:absolute;width:120%;height:120%;left:-35%;top:-55%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.38),transparent 60%)}
+.av::after{content:"";position:absolute;width:70%;height:70%;right:-22%;bottom:-22%;border-radius:50%;border:2px solid rgba(255,255,255,.22)}
+.av b{position:relative;z-index:1;font:inherit;font-weight:700;text-shadow:0 1px 6px rgba(0,0,0,.35)}
+.tp-img .av,.pp-img .av{border-radius:inherit}
 .tc-nm{min-width:0;flex:1}
 .tc-nm b{display:block;font:600 16px var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tc-nm small{display:block;color:var(--acc2);font:500 13px var(--mono)}
@@ -844,7 +849,37 @@ window.NYXEN = {
     return /^https:\/\/[^\s"'<>]+$/i.test(u)?u:'';
   }
   function letters(s){return esc(String(s||'?').replace(/^\$/,'').slice(0,2).toUpperCase())}
-  function imgTag(src,sym){return src?'<img src="'+esc(src)+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.textContent=\''+letters(sym)+'\'">':letters(sym)}
+  /* logo token: gambar asli kalau ada, kalau nggak ada pakai avatar warna-warni unik per token */
+  function hsh(x){x=String(x||'?').toLowerCase();var h=2166136261;for(var i=0;i<x.length;i++){h^=x.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+  function av(sym,addr){
+    var h=hsh(addr||sym),a=h%360,b=(a+40+(h>>9)%80)%360,ang=(h>>4)%360;
+    return '<i class="av" style="background:linear-gradient('+ang+'deg,hsl('+a+' 78% 58%),hsl('+b+' 72% 42%))"><b>'+letters(sym)+'</b></i>';
+  }
+  window.nyAv=function(img){var p=img.parentNode;if(p) p.innerHTML=av(img.getAttribute('data-s'),img.getAttribute('data-a'))};
+  function imgTag(src,sym,addr){
+    if(!src&&addr) src=IMG[String(addr).toLowerCase()]||'';
+    return src?'<img src="'+esc(src)+'" alt="" loading="lazy" referrerpolicy="no-referrer" data-s="'+esc(sym||'')+'" data-a="'+esc(addr||'')+'" onerror="nyAv(this)">':av(sym,addr);
+  }
+  /* gambar token dari DexScreener (gratis, 30 token per panggilan) */
+  var IMG={},IMGTRY={};
+  function dsImages(items){
+    var need=(items||[]).filter(function(t){var k=t.address.toLowerCase();return !t.img&&!IMG[k]&&!IMGTRY[k]}).slice(0,30);
+    if(!need.length) return;
+    need.forEach(function(t){IMGTRY[t.address.toLowerCase()]=1});
+    fetch('https://api.dexscreener.com/tokens/v1/base/'+need.map(function(t){return t.address}).join(','),{headers:{accept:'application/json'}})
+      .then(function(r){if(!r.ok) throw 0;return r.json()}).then(function(arr){
+        var got=0;
+        (Array.isArray(arr)?arr:(arr&&arr.pairs)||[]).forEach(function(pr){
+          var u=pr&&pr.info&&safeImg(pr.info.imageUrl||'');if(!u) return;
+          [pr.baseToken,pr.quoteToken].forEach(function(tk){var k=tk&&String(tk.address||'').toLowerCase();if(k&&IMGTRY[k]&&!IMG[k]){IMG[k]=u;got++}});
+        });
+        if(!got) return;
+        Object.keys(ex.lists).forEach(function(key){(ex.lists[key]||[]).forEach(function(t){var u=IMG[t.address.toLowerCase()];if(u&&!t.img) t.img=u})});
+        Object.keys(ex.meta).forEach(function(k){if(IMG[k]&&ex.meta[k]&&!ex.meta[k].img) ex.meta[k].img=IMG[k]});
+        if(ex.q&&ex.found) renderList(ex.found);else render();
+        renderHero();
+      }).catch(function(){});
+  }
   function toast(m){var el=$('toast');el.textContent=m;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('on')},4200)}
   function lock(){document.body.style.overflow=($('drawer').classList.contains('open')||$('menu').classList.contains('open'))?'hidden':''}
 
@@ -908,13 +943,44 @@ window.NYXEN = {
     });
   }
   function listKey(){return ex.tab+(ex.only&&ex.tab!=='new'?':nyx':'')}
+  /* ---------- semua token di Base: GeckoTerminal (gratis, tanpa key) ---------- */
+  var GT='https://api.geckoterminal.com/api/v2';
+  var MAJORS={'0x4200000000000000000000000000000000000006':1,'0x833589fcd6edb6e08f4c7c32d4f71b54bda02913':1,'0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca':1,'0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf':1,'0x50c5725949a6f0c72e6c4a641f24049a917db0cb':1,'0xfde4c96c8593536e31f229ea8f37b2ada2699bb2':1,'0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22':1,'0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452':1,'0x0000000000000000000000000000000000000000':1};
+  function gt(path){
+    return fetch(GT+path,{headers:{accept:'application/json'}}).then(function(r){if(!r.ok) throw new Error('gt '+r.status);return r.json()});
+  }
+  function fromGT(j){
+    var inc={};(j&&j.included||[]).forEach(function(t){if(t&&t.attributes) inc[t.id]=t.attributes});
+    var seen={},out=[];
+    (j&&j.data||[]).forEach(function(pl){
+      var a=pl.attributes||{},rel=pl.relationships||{};
+      var bid=rel.base_token&&rel.base_token.data&&rel.base_token.data.id||'',addr=(bid.split('_')[1]||'').toLowerCase();
+      if(!/^0x[0-9a-f]{40}$/.test(addr)||MAJORS[addr]||seen[addr]) return;seen[addr]=1;
+      var tk=inc[bid]||{},pc=a.price_change_percentage||{},vu=a.volume_usd||{};
+      var nm=String(a.name||'').split(' / ')[0];
+      out.push({address:tk.address||addr,name:tk.name||nm,symbol:tk.symbol||nm,img:safeImg(tk.image_url&&!/missing/i.test(tk.image_url)?tk.image_url:'')||IMG[addr]||'',
+        creator:'',created:Date.parse(a.pool_created_at||'')||null,mcap:num(a.market_cap_usd)!=null?num(a.market_cap_usd):num(a.fdv_usd),
+        ch24:num(pc.h24),vol:num(vu.h24),iface:'',desc:''});
+    });
+    return out;
+  }
   function loadTopOrTrending(tab){
+    var path=tab==='top'?'/networks/base/pools?include=base_token&sort=h24_volume_usd_desc&page=1':'/networks/base/trending_pools?include=base_token&duration=6h&page=1';
+    return gt(path).then(function(j){var it=fromGT(j);if(!it.length) throw new Error('empty');return it}).catch(function(){return loadTopClanker(tab)});
+  }
+  function loadTopClanker(tab){
     var q='/tokens?chainId='+CHAIN_ID+'&limit=20&includeMarket=true&sort=desc&sortBy='+(tab==='top'?'market-cap':'volume-h24')+(ex.only?'&socialInterface='+encodeURIComponent(IFACE):'');
     return api(q).then(function(j){return (j.data||[]).map(fromApi).filter(Boolean)});
   }
   var LAUNCHED='event Launched(address indexed token, bytes32 indexed poolId, address indexed originalCreator, address quoteToken, uint256 launchSupply, int24 tickSpacing)';
   var ERC20=[{type:'function',name:'name',stateMutability:'view',inputs:[],outputs:[{type:'string'}]},{type:'function',name:'symbol',stateMutability:'view',inputs:[],outputs:[{type:'string'}]}];
   function loadNew(){
+    return gt('/networks/base/new_pools?include=base_token&page=1').then(function(j){
+      var it=fromGT(j);if(!it.length) throw new Error('empty');
+      it.sort(function(a,b){return (b.created||0)-(a.created||0)});return it;
+    }).catch(function(){return loadNewClanker()});
+  }
+  function loadNewClanker(){
     return api('/tokens?chainId='+CHAIN_ID+'&limit=20&includeMarket=true&sort=desc').then(function(j){
       var items=(j&&j.data||[]).map(fromApi).filter(Boolean);
       if(!items.length) throw new Error('empty');
@@ -965,14 +1031,14 @@ window.NYXEN = {
     if(ex.loading) return;ex.loading=true;
     var tab=ex.tab,key=listKey();
     var p=tab==='new'?loadNew():loadTopOrTrending(tab);
-    p.then(function(items){ex.lists[key]=items;ex.at=Date.now();if(listKey()===key) render();if(tab==='new') renderHero()})
+    p.then(function(items){ex.lists[key]=items;ex.at=Date.now();if(listKey()===key) render();if(tab==='new') renderHero();dsImages(items)})
      .catch(function(){if(listKey()===key&&!ex.lists[key]){note('Base is busy right now','We could not reach the token list. Trying again in a few seconds… <br><button class="pill" type="button" data-retry style="margin-top:12px">Try again</button>');clearTimeout(load.rt);load.rt=setTimeout(load,8000)}})
      .then(function(){ex.loading=false;stamp()});
   }
   document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('[data-retry]')){$('rows').innerHTML='<div class="skel"></div><div class="skel"></div><div class="skel"></div>';load()}});
   function loadNewForHero(){
     if(ex.tab==='new') return;
-    loadNew().then(function(items){ex.lists['new']=items;renderHero()}).catch(function(){});
+    loadNew().then(function(items){ex.lists['new']=items;renderHero();dsImages(items)}).catch(function(){});
   }
   function note(t,b){$('rows').innerHTML='<div class="note"><b>'+t+'</b>'+(b?'<p style="margin:0 auto;max-width:56ch">'+b+'</p>':'')+'</div>'}
   function isMine(t){return String(t.iface).toLowerCase()===IFACE.toLowerCase()}
@@ -986,17 +1052,20 @@ window.NYXEN = {
       return (t.name||'').toLowerCase().indexOf(q)>-1||(t.symbol||'').toLowerCase().indexOf(q.replace(/^\$/,''))>-1||t.address.toLowerCase()===q;
     });
     if(!arr.length){
-      if(/^0x[0-9a-f]{40}$/.test(q)){searchAddr(q);return}
+      if(q.length>=2){searchAll(q);return}
       if(ex.only) note('No Nyxen launches here yet','Create the first one and it will show up here.');
       else if(q) note('No tokens found','Try another name or ticker, or paste a contract address.');
       else note('Quiet night on Base','No new launches in the last few hours. Check back soon.');
       return;
     }
+    renderList(arr);
+  }
+  function renderList(arr){
     $('rows').innerHTML=arr.map(function(t){
       var fresh=t.created&&Date.now()-t.created<15*60000;
       var right=ex.tab==='new'||t.ch24==null?'<span>Born</span><b>'+esc(ago(t.created)||'—')+'</b>':'<span>24h</span><b class="'+(t.ch24>=0?'up':'down')+'">'+pct(t.ch24)+'</b>';
       return '<button class="tcard" type="button" data-addr="'+esc(t.address)+'">'+
-        '<span class="tc-top"><span class="timg">'+imgTag(t.img,t.symbol||t.name)+'</span><span class="tc-nm"><b>'+esc(t.name||short(t.address))+'</b><small>$'+esc(t.symbol||'???')+'</small></span></span>'+
+        '<span class="tc-top"><span class="timg">'+imgTag(t.img,t.symbol||t.name,t.address)+'</span><span class="tc-nm"><b>'+esc(t.name||short(t.address))+'</b><small>$'+esc(t.symbol||'???')+'</small></span></span>'+
         '<span class="tags">'+(fresh?'<em class="tag new">Newborn</em>':'')+(isMine(t)?'<em class="tag ny">Nyxen</em>':'')+(t.creator?'<em class="tag">by '+esc(short(t.creator))+'</em>':'')+'</span>'+
         '<span class="tc-bot"><span><span>Market cap</span><b>'+usd(t.mcap)+'</b></span><span class="r">'+right+'</span></span></button>';
     }).join('');
@@ -1004,13 +1073,32 @@ window.NYXEN = {
   function renderHero(){
     if(!(ex.lists['new']||[]).length) return;
     var all=(ex.lists['new']||[]).slice(0,14);
-    var seg=all.map(function(t){return '<button class="it" type="button" data-addr="'+esc(t.address)+'"><span class="timg">'+imgTag(t.img,t.symbol||t.name)+'</span><b>$'+esc(t.symbol||'???')+'</b><em>'+usd(t.mcap)+'</em>'+esc(ago(t.created))+'</button>'}).join('');
+    var seg=all.map(function(t){return '<button class="it" type="button" data-addr="'+esc(t.address)+'"><span class="timg">'+imgTag(t.img,t.symbol||t.name,t.address)+'</span><b>$'+esc(t.symbol||'???')+'</b><em>'+usd(t.mcap)+'</em>'+esc(ago(t.created))+'</button>'}).join('');
     $('band').innerHTML=seg+seg;
   }
   function brandBand(){
     var w=['Nyxen Launchpad','Built on Clanker v5','One signature to Launch','Creator fees in ETH','Live on Base'];
     var s=w.map(function(x){return '<span class="it"><span class="star">✦</span>'+x+'</span>'}).join('');
     $('band').innerHTML=s+s+s;
+  }
+  var sT=null,sCache={};
+  function searchAll(q){
+    if(sCache[q]){showFound(q,sCache[q]);return}
+    note('Searching all of Base…');clearTimeout(sT);
+    sT=setTimeout(function(){
+      gt('/search/pools?query='+encodeURIComponent(q.replace(/^\$/,''))+'&network=base&include=base_token&page=1').then(function(j){
+        var it=fromGT(j);sCache[q]=it;if(ex.q.toLowerCase()===q) showFound(q,it);
+      }).catch(function(){
+        if(ex.q.toLowerCase()!==q) return;
+        if(/^0x[0-9a-f]{40}$/.test(q)) searchAddr(q);else note('Search failed','Could not reach the token list. Try again in a moment.');
+      });
+    },400);
+  }
+  function showFound(q,it){
+    if(!it.length){if(/^0x[0-9a-f]{40}$/.test(q)) searchAddr(q);else note('No tokens found','Try another name or ticker, or paste a contract address.');return}
+    it.forEach(function(t){ex.meta[t.address.toLowerCase()]=t});
+    var keep=ex.lists[listKey()]||[];
+    $('rows').innerHTML='';ex.found=it;renderList(it);dsImages(it);
   }
   var searching='';
   function searchAddr(a){
@@ -1050,7 +1138,7 @@ window.NYXEN = {
   function openToken(t){
     var a=t.address;
     $('dBody').innerHTML=
-      '<div class="dh"><span class="timg">'+imgTag(t.img,t.symbol||t.name)+'</span><div><h2>'+esc(t.name||short(a))+'</h2><p>$'+esc(t.symbol||'???')+'</p></div></div>'+
+      '<div class="dh"><span class="timg">'+imgTag(t.img,t.symbol||t.name,a)+'</span><div><h2>'+esc(t.name||short(a))+'</h2><p>$'+esc(t.symbol||'???')+'</p></div></div>'+
       (t.desc?'<p class="ddesc">'+esc(t.desc)+'</p>':'')+
       '<div class="dstats" id="dStats">'+ds('Market cap',usd(t.mcap))+ds('24h change',pct(t.ch24),t.ch24==null?'':t.ch24>=0?'up':'down')+ds('Volume 24h',usd(t.vol))+ds('Born',esc(ago(t.created)||'—'))+'</div>'+
       '<div class="daddr"><code id="dAddr">'+esc(a)+'</code><button class="btn sm" type="button" id="dCopy">Copy</button></div>'+
@@ -1682,7 +1770,7 @@ window.NYXEN = {
   }
   function tpHead(){
     var a=TP.addr;
-    $('tpHead').innerHTML='<span class="tp-img">'+imgTag(TP.img,TP.sym||TP.name)+'</span><div class="tp-nm"><h1>'+esc(TP.name||'Loading…')+'</h1><p>$'+esc(TP.sym||'…')+'<span class="tp-live"><i class="gdot"></i>Live on Base</span></p></div>'+
+    $('tpHead').innerHTML='<span class="tp-img">'+imgTag(TP.img,TP.sym||TP.name,TP.addr)+'</span><div class="tp-nm"><h1>'+esc(TP.name||'Loading…')+'</h1><p>$'+esc(TP.sym||'…')+'<span class="tp-live"><i class="gdot"></i>Live on Base</span></p></div>'+
       '<div class="tp-ca"><code>'+esc(a)+'</code><button class="btn sm" type="button" data-copy="'+esc(a)+'">Copy CA</button></div>';
     $('tpLinks').innerHTML='<a class="btn sm" href="https://dexscreener.com/base/'+a+'" target="_blank" rel="noopener">DexScreener</a><a class="btn sm" href="https://app.uniswap.org/swap?chain=base&outputCurrency='+a+'" target="_blank" rel="noopener">Uniswap</a><a class="btn sm" href="https://clanker.world/clanker/'+a+'" target="_blank" rel="noopener">Clanker</a><a class="btn sm" href="https://basescan.org/token/'+a+'" target="_blank" rel="noopener">Basescan</a>';
     document.title=TP.sym?'$'+TP.sym+' – NYXEN Launchpad':'Token – NYXEN Launchpad';
