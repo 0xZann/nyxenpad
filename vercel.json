@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/launch", "destination": "/index.html" },
+    { "source": "/fees", "destination": "/index.html" },
+    { "source": "/token/:addr", "destination": "/index.html" }
+  ]
+}
