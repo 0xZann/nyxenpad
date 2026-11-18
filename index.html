@@ -302,6 +302,12 @@ html.js .reveal.in{opacity:1;transform:none}
 .tf button.on{background:#8b5cf6;color:#fff}
 .tlist{display:grid;margin-top:18px;border-radius:22px;border:1px solid var(--line);background:rgba(13,11,37,.55);overflow:hidden}
 .tlist .skel{height:72px;border-radius:0;border:0;border-bottom:1px solid var(--line)}
+.tlist{position:relative;transition:opacity .22s ease,transform .22s ease}
+.tlist.out{opacity:.25;transform:translateY(6px)}
+.tlist.wait::after{content:"";position:absolute;left:0;top:0;height:2px;width:40%;background:#8b5cf6;border-radius:2px;animation:tlbar 1s ease-in-out infinite}
+@keyframes tlbar{0%{left:-40%}100%{left:100%}}
+.tlist.anim .trow{animation:rowIn .42s cubic-bezier(.2,.9,.2,1) both;animation-delay:calc(var(--r,0)*28ms)}
+@keyframes rowIn{from{opacity:0;transform:translateY(10px)}}
 .tlist .note{border:0;border-radius:0}
 .thead,.trow{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,.8fr) minmax(0,.9fr);gap:12px;align-items:center;padding:12px 18px}
 .thead{font:500 12px var(--mono);color:var(--mute);border-bottom:1px solid var(--line);background:rgba(255,255,255,.02)}
@@ -323,8 +329,11 @@ html.js .reveal.in{opacity:1;transform:none}
 .tcard{display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:20px;background:var(--panel);border:1px solid var(--line);text-align:left;color:inherit;font:inherit;cursor:pointer;width:100%;min-width:0;transition:border-color .15s,transform .2s,background .15s}
 .tcard:hover,.tcard:focus-visible{border-color:rgba(196,181,253,.45);background:var(--panel2);transform:translateY(-3px);outline:none}
 .tc-top{display:flex;gap:12px;align-items:center;min-width:0}
-.timg{width:52px;height:52px;border-radius:15px;overflow:hidden;background:linear-gradient(135deg,#6d28d9,#f472b6);display:grid;place-items:center;font:600 16px var(--display);color:#fff;flex:none}
-.timg img{width:100%;height:100%;object-fit:cover;display:block;background:#fff}
+.timg{position:relative;width:52px;height:52px;border-radius:15px;overflow:hidden;background:linear-gradient(135deg,#6d28d9,#f472b6);display:grid;place-items:center;font:600 16px var(--display);color:#fff;flex:none}
+.timg img,.tp-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#fff;opacity:0;transition:opacity .35s ease}
+.timg img.in,.timg img.ok,.tp-img img.in,.tp-img img.ok{opacity:1}
+.timg img.ok,.tp-img img.ok{transition:none}
+.tp-img{position:relative}
 .av{width:100%;height:100%;display:grid;place-items:center;position:relative;overflow:hidden;font-style:normal;color:#fff}
 .av::before{content:"";position:absolute;width:120%;height:120%;left:-35%;top:-55%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.38),transparent 60%)}
 .av::after{content:"";position:absolute;width:70%;height:70%;right:-22%;bottom:-22%;border-radius:50%;border:2px solid rgba(255,255,255,.22)}
@@ -515,7 +524,7 @@ body.loading header.nav{opacity:0;transform:translateY(-14px)}
 body.loading .hero,body.loading .sec,body.loading .closer,body.loading footer{opacity:0;filter:blur(10px)}
 body.vout .v-home,body.vout .v-launch,body.vout .v-fees,body.vout .v-token{opacity:0;transform:translateY(-8px);transition:opacity .2s ease,transform .2s ease}
 .btn:active,.pill:active,.tcard:active{transform:scale(.97)}
-.timg img,.photo-ic img{animation:imgIn .45s ease both}
+.photo-ic img{animation:imgIn .45s ease both}
 @keyframes imgIn{from{opacity:0;transform:scale(1.06)}to{opacity:1;transform:none}}
 @keyframes viewIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 body.vin .v-home,body.vin .v-launch,body.vin .v-fees,body.vin .v-token{animation:viewIn .55s cubic-bezier(.22,.8,.26,1) backwards}
@@ -825,9 +834,13 @@ body.vin .v-home,body.vin .v-launch,body.vin .v-fees,body.vin .v-token{animation
    integratorShare: percent of the fee left after Clanker's cut (0-100).
    0 means creators keep all of it.                                   */
 window.NYXEN = {
+  /* privyAppId: App ID from https://dashboard.privy.io . When it is set,
+     "Connect wallet" uses Privy (email, Google, X or any wallet).
+     Leave empty to use the browser wallet (MetaMask, Rabby, …) directly. */
+  privyAppId: 'cmwlqubz6019o0hlbdycv7smw',
   /* imgbbKey: free key from https://api.imgbb.com . Needed so people can
      add a photo for their token. Paste it between the quotes below.   */
-  imgbbKey: '',
+  imgbbKey: '69114fa4eb9751cd4aac70d0da5319bf',
   interface: 'Nyxen',
   integrator: '',
   integratorShare: 0,
@@ -879,11 +892,15 @@ window.NYXEN = {
     var h=hsh(addr||sym),a=h%360,b=(a+40+(h>>9)%80)%360,ang=(h>>4)%360;
     return '<i class="av" style="background:linear-gradient('+ang+'deg,hsl('+a+' 78% 58%),hsl('+b+' 72% 42%))"><b>'+letters(sym)+'</b></i>';
   }
-  window.nyAv=function(img){var p=img.parentNode;if(p) p.innerHTML=av(img.getAttribute('data-s'),img.getAttribute('data-a'))};
+  var LOADED={};
+  window.nyAv=function(img){if(img.parentNode) img.parentNode.removeChild(img)};
+  window.nyOk=function(img){LOADED[img.getAttribute('src')]=1;img.classList.add('in')};
   function imgTag(src,sym,addr){
     if(!src&&addr) src=IMG[String(addr).toLowerCase()]||'';
-    return src?'<img src="'+esc(src)+'" alt="" loading="lazy" referrerpolicy="no-referrer" data-s="'+esc(sym||'')+'" data-a="'+esc(addr||'')+'" onerror="nyAv(this)">':av(sym,addr);
+    if(!src) return av(sym,addr);
+    return av(sym,addr)+'<img src="'+esc(src)+'" alt="" decoding="async" referrerpolicy="no-referrer"'+(LOADED[src]?' class="ok"':'')+' onload="nyOk(this)" onerror="nyAv(this)">';
   }
+  function preload(items){(items||[]).slice(0,30).forEach(function(t){var u=t.img||IMG[t.address.toLowerCase()];if(u&&!LOADED[u]){var im=new Image();im.referrerPolicy='no-referrer';im.onload=function(){LOADED[u]=1};im.src=u}})}
   /* gambar token dari DexScreener (gratis, 30 token per panggilan) */
   var IMG={},IMGTRY={};
   function dsImages(items){
@@ -1069,11 +1086,22 @@ window.NYXEN = {
     if(ex.loading) return;ex.loading=true;
     var tab=ex.tab,key=listKey();
     var p=tab==='new'?loadNew():loadTopOrTrending(tab);
-    p.then(function(items){ex.lists[key]=items;ex.at=Date.now();if(listKey()===key) render();renderHero();dsImages(items)})
+    p.then(function(items){var fresh=!ex.lists[key];ex.lists[key]=items;ex.at=Date.now();if(listKey()===key){if(fresh) ex.anim=true;render()}renderHero();dsImages(items);preload(items);prefetch()})
      .catch(function(){if(listKey()===key&&!ex.lists[key]){note('Base is busy right now','We could not reach the token list. Trying again in a few seconds… <br><button class="pill" type="button" data-retry style="margin-top:12px">Try again</button>');clearTimeout(load.rt);load.rt=setTimeout(load,8000)}})
      .then(function(){ex.loading=false;stamp();if(listKey()!==key&&!ex.lists[listKey()]) load()});
   }
   document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('[data-retry]')){$('rows').innerHTML='<div class="skel"></div><div class="skel"></div><div class="skel"></div>';load()}});
+  var pfBusy=false;
+  function prefetch(){
+    if(pfBusy) return;
+    var tabs=['trending','top','new'],todo=tabs.filter(function(t){var k=t+(t==='trending'?':'+ex.tf:'');return !ex.lists[k]});
+    if(!todo.length) return;pfBusy=true;
+    var t=todo[0],k=t+(t==='trending'?':'+ex.tf:'');
+    setTimeout(function(){
+      (t==='new'?loadNew():loadTopOrTrending(t)).then(function(items){if(!ex.lists[k]){ex.lists[k]=items;dsImages(items);preload(items)}}).catch(function(){})
+        .then(function(){pfBusy=false;setTimeout(prefetch,1500)});
+    },1200);
+  }
   function loadNewForHero(){
     if(ex.tab==='new') return;
     loadNew().then(function(items){ex.lists['new']=items;renderHero();dsImages(items)}).catch(function(){});
@@ -1081,8 +1109,12 @@ window.NYXEN = {
   function note(t,b){$('rows').innerHTML='<div class="note"><b>'+t+'</b>'+(b?'<p style="margin:0 auto;max-width:56ch">'+b+'</p>':'')+'</div>'}
   function isMine(t){return String(t.iface).toLowerCase()===IFACE.toLowerCase()}
   function render(){
-    var items=ex.lists[listKey()];
-    if(!items){$('rows').innerHTML='<div class="skel"></div><div class="skel"></div><div class="skel"></div>';return}
+    var items=ex.lists[listKey()],R=$('rows');
+    if(!items){
+      if(R.querySelector('.trow')){R.classList.add('wait');return} /* list lama tetap kelihatan sambil memuat */
+      R.innerHTML='<div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div>';return;
+    }
+    R.classList.remove('wait');
     var q=ex.q.toLowerCase();
     var arr=items.filter(function(t){
       if(ex.only&&!isMine(t)) return false;
@@ -1100,11 +1132,19 @@ window.NYXEN = {
   }
   function age(ms){if(!ms) return '';var m=Math.max(1,Math.round((Date.now()-ms)/60000));return m<60?m+'m':m<1440?Math.round(m/60)+'h':Math.round(m/1440)+'d'}
   function cnt(n){if(n==null) return '—';return n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(n>=1e4?1:2)+'K':String(n)}
+  function swapList(){
+    var R=$('rows');R.classList.add('out');
+    setTimeout(function(){
+      R.classList.remove('out');ex.anim=true;render();
+      if(ex.anim){ex.anim=false}
+    },200);
+  }
   function renderList(arr){
+    var R=$('rows');R.classList.toggle('anim',!!ex.anim);if(ex.anim) setTimeout(function(){R.classList.remove('anim')},900);ex.anim=false;
     var tf=ex.tf,lbl=tf==='h24'?'24h':tf==='h6'?'6h':'1h';
-    $('rows').innerHTML='<div class="thead"><span>Token · Age</span><span>Vol / TXs</span><span>MC / '+lbl+'%</span></div>'+arr.map(function(t){
+    $('rows').innerHTML='<div class="thead"><span>Token · Age</span><span>Vol / TXs</span><span>MC / '+lbl+'%</span></div>'+arr.map(function(t,i){
       var ch=t.chg?t.chg[tf]:(tf==='h24'?t.ch24:null),vol=t.vols?t.vols[tf]:(tf==='h24'?t.vol:null),tx=t.txs?t.txs[tf]:null,ag=age(t.created);
-      return '<button class="trow" type="button" data-addr="'+esc(t.address)+'">'+
+      return '<button class="trow" type="button" style="--r:'+Math.min(i,14)+'" data-addr="'+esc(t.address)+'">'+
         '<span class="tr-l"><span class="timg">'+imgTag(t.img,t.symbol||t.name,t.address)+'</span><span class="tr-nm"><b>'+esc(t.name||short(t.address))+'</b><small>'+(ag?'<em>'+ag+'</em>':'')+'$'+esc(t.symbol||'???')+(t.liq!=null?'<i class="lq"> · Liq '+usd(t.liq)+'</i>':'')+'</small></span></span>'+
         '<span><b>'+usd(vol)+'</b><small>'+cnt(tx)+'</small></span>'+
         '<span><b>'+usd(t.mcap)+'</b><small class="'+(ch==null?'':ch>=0?'up':'down')+'">'+pct(ch)+'</small></span></button>';
@@ -1156,17 +1196,19 @@ window.NYXEN = {
   function stamp(){$('upd').textContent=ex.at?' · '+ago(ex.at):''}
   Array.prototype.forEach.call(document.querySelectorAll('[data-tab]'),function(b){
     b.addEventListener('click',function(){
+      if(ex.tab===b.getAttribute('data-tab')) return;
       ex.tab=b.getAttribute('data-tab');
       Array.prototype.forEach.call(document.querySelectorAll('[data-tab]'),function(x){x.setAttribute('aria-selected',x===b?'true':'false')});
-      render();load();
+      swapList();load();
     });
   });
   $('q').addEventListener('input',function(e){ex.q=e.target.value.trim();render()});
   Array.prototype.forEach.call(document.querySelectorAll('[data-tf]'),function(b){
     b.addEventListener('click',function(){
+      if(ex.tf===b.getAttribute('data-tf')) return;
       ex.tf=b.getAttribute('data-tf');
       Array.prototype.forEach.call(document.querySelectorAll('[data-tf]'),function(x){x.classList.toggle('on',x===b)});
-      render();if(ex.tab==='trending') load();
+      swapList();if(ex.tab==='trending') load();
     });
   });
   $('pause').addEventListener('click',function(){
@@ -1215,7 +1257,7 @@ window.NYXEN = {
   document.addEventListener('click',function(e){var b=e.target.closest('[data-addr]');if(!b) return;var t=findTok(b.getAttribute('data-addr'));if(t) openToken(t)});
 
   /* ---------- wallet ---------- */
-  var W={acct:null,chainOk:false};
+  var W={acct:null,chainOk:false,provider:null,pw:null};
   function walletUI(){
     Array.prototype.forEach.call(document.querySelectorAll('[data-wallet]'),function(b){
       if(!W.acct){b.innerHTML='Connect wallet';b.classList.remove('bad');return}
@@ -1223,34 +1265,123 @@ window.NYXEN = {
     });
     mfSync();tpSync();
   }
+  function EP(){return W.provider||window.ethereum}
   function ensureBase(){
-    return window.ethereum.request({method:'eth_chainId'}).then(function(id){
+    if(W.pw&&W.pw.switchChain){return W.pw.switchChain(CHAIN_ID).then(function(){W.chainOk=true})}
+    var P=EP();
+    return P.request({method:'eth_chainId'}).then(function(id){
       if(parseInt(id,16)===CHAIN_ID){W.chainOk=true;return}
-      return window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:CHAIN_HEX}]}).catch(function(e){
+      return P.request({method:'wallet_switchEthereumChain',params:[{chainId:CHAIN_HEX}]}).catch(function(e){
         var code=e&&(e.code||(e.data&&e.data.originalError&&e.data.originalError.code));
-        if(code===4902) return window.ethereum.request({method:'wallet_addEthereumChain',params:[{chainId:CHAIN_HEX,chainName:'Base',nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},rpcUrls:['https://mainnet.base.org'],blockExplorerUrls:['https://basescan.org']}]});
+        if(code===4902) return P.request({method:'wallet_addEthereumChain',params:[{chainId:CHAIN_HEX,chainName:'Base',nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},rpcUrls:['https://mainnet.base.org'],blockExplorerUrls:['https://basescan.org']}]});
         throw e;
       }).then(function(){W.chainOk=true});
     });
   }
   function errMsg(e){
     var m=(e&&(e.shortMessage||e.message))||'Something went wrong.';
-    if(e&&(e.code===4001||e.code==='ACTION_REJECTED'||/user (rejected|denied)/i.test(m))) return 'You cancelled the request in your wallet.';
+    if(e&&(e.code===4001||e.code==='ACTION_REJECTED'||/user (rejected|denied)|exited_auth_flow|closed/i.test(m))) return 'You cancelled the request in your wallet.';
     if(/insufficient funds/i.test(m)) return 'Not enough ETH on Base for this launch plus the network fee.';
     return m.length>220?m.slice(0,220)+'…':m;
   }
+
+  /* ---------- Privy: login pakai email / Google / X / wallet apa saja ---------- */
+  var PRIVY_ID=String(CFG.privyAppId||'').trim(),PV=null,PVP=null,pvWait=[],pvLogin=null;
+  var REACT='https://esm.sh/react@18.3.1',REACTDOM='https://esm.sh/react-dom@18.3.1/client',PRIVY_PKGS=['@privy-io/react-auth@3','@privy-io/react-auth@2'];
+  function pvEmit(){
+    var keep=[];pvWait.forEach(function(f){if(!f()) keep.push(f)});pvWait=keep;
+    if(PV&&PV.ready){
+      if(PV.auth&&PV.wallets&&PV.wallets.length) pvUse(pvPick());
+      else if(!PV.auth&&W.pw){W.pw=null;W.provider=null;W.acct=null;W.chainOk=false;walletUI();renderPreview()}
+    }
+  }
+  function pvUntil(test,ms){
+    return new Promise(function(res,rej){
+      var t=setTimeout(function(){rej(new Error('Login is taking too long. Try again.'))},ms||60000);
+      function f(){var r=test();if(r){clearTimeout(t);res(r);return true}return false}
+      if(!f()) pvWait.push(f);
+    });
+  }
+  function pvPick(){
+    var ws=PV.wallets||[],ext=ws.filter(function(w){return w.walletClientType&&w.walletClientType!=='privy'})[0];
+    return ext||ws[0];
+  }
+  var pvUsing=null;
+  function pvUse(w){
+    if(!w||pvUsing===w.address&&W.pw===w) return Promise.resolve();
+    pvUsing=w.address;
+    return w.getEthereumProvider().then(function(prov){
+      W.pw=w;W.provider=prov;W.acct=w.address;W.chainOk=String(w.chainId||'').split(':').pop()==String(CHAIN_ID);
+      if(prov&&prov.on&&!prov.__ny){prov.__ny=1;prov.on('chainChanged',function(id){W.chainOk=parseInt(id,16)===CHAIN_ID;walletUI()})}
+      walletUI();renderPreview();
+    }).catch(function(){pvUsing=null});
+  }
+  function privyLoad(){
+    if(PVP) return PVP;
+    PVP=Promise.all([import(REACT),import(REACTDOM),viem()]).then(function(r){
+      var React=r[0].default||r[0],RDC=r[1].default||r[1],base=r[2].base;
+      function imp(i){if(i>=PRIVY_PKGS.length) return Promise.reject(new Error('Could not load Privy. Check your connection.'));return import('https://esm.sh/'+PRIVY_PKGS[i]+'?deps=react@18.3.1,react-dom@18.3.1').catch(function(){return imp(i+1)})}
+      return imp(0).then(function(P){
+        var h=React.createElement;
+        function Bridge(){
+          var p=P.usePrivy(),w=P.useWallets();
+          var L=P.useLogin?P.useLogin({onComplete:function(){pvLogin&&pvLogin.ok()},onError:function(e){pvLogin&&pvLogin.err(e)}}):null;
+          React.useEffect(function(){
+            PV={ready:!!(p.ready&&w.ready),auth:!!p.authenticated,login:L&&L.login?L.login:p.login,logout:p.logout,wallets:w.wallets||[]};pvEmit();
+          },[p.ready,p.authenticated,w.ready,w.wallets]);
+          return null;
+        }
+        var el=document.createElement('div');el.id='privyRoot';document.body.appendChild(el);
+        RDC.createRoot(el).render(h(P.PrivyProvider,{appId:PRIVY_ID,config:{
+          loginMethods:['wallet','email','google'],
+          appearance:{theme:'dark',accentColor:'#8b5cf6',showWalletLoginFirst:true,walletChainType:'ethereum-only',landingHeader:'Connect to Nyxen'},
+          embeddedWallets:{ethereum:{createOnLogin:'users-without-wallets'}},
+          defaultChain:base,supportedChains:[base]
+        }},h(Bridge)));
+        return pvUntil(function(){return PV&&PV.ready},30000);
+      });
+    }).catch(function(e){PVP=null;throw e});
+    return PVP;
+  }
+  function privyConnect(){
+    return privyLoad().then(function(){
+      if(PV.auth) return;
+      return new Promise(function(res,rej){
+        pvLogin={ok:function(){pvLogin=null;res()},err:function(e){pvLogin=null;rej(e||new Error('You closed the login window.'))}};
+        try{PV.login()}catch(e){pvLogin=null;rej(e)}
+        pvUntil(function(){return PV.auth},120000).then(function(){if(pvLogin){pvLogin=null;res()}},function(){});
+      });
+    }).then(function(){
+      return pvUntil(function(){return PV.wallets&&PV.wallets.length?pvPick():null},30000);
+    }).then(function(w){
+      return pvUse(w).then(function(){if(!W.chainOk) return ensureBase()});
+    }).then(function(){walletUI();renderPreview()});
+  }
   function connect(){
+    if(PRIVY_ID) return privyConnect().catch(function(e){walletUI();var m=errMsg(e);if(!/cancelled/.test(m)) toast(m);throw e});
     if(!window.ethereum){toast('No wallet found. Open this page in the MetaMask or Coinbase Wallet app, or install a wallet extension.');return Promise.reject(new Error('no wallet'))}
     return window.ethereum.request({method:'eth_requestAccounts'}).then(function(a){W.acct=a&&a[0]||null;walletUI();return ensureBase()}).then(function(){walletUI();renderPreview()})
       .catch(function(e){walletUI();if(e&&e.message!=='no wallet')toast(errMsg(e));throw e});
   }
-  Array.prototype.forEach.call(document.querySelectorAll('[data-wallet]'),function(b){b.addEventListener('click',function(){if(!(W.acct&&W.chainOk))connect().catch(function(){})})});
-  if(window.ethereum&&window.ethereum.on){
-    window.ethereum.on('accountsChanged',function(a){W.acct=a&&a[0]||null;walletUI();renderPreview()});
-    window.ethereum.on('chainChanged',function(id){W.chainOk=parseInt(id,16)===CHAIN_ID;walletUI()});
+  function disconnect(){
+    if(PRIVY_ID&&PV&&PV.logout){PV.logout();W.pw=null;W.provider=null;W.acct=null;W.chainOk=false;pvUsing=null;walletUI();renderPreview();toast('Disconnected.')}
   }
-  if(window.ethereum&&window.ethereum.request){
-    window.ethereum.request({method:'eth_accounts'}).then(function(a){if(a&&a[0]){W.acct=a[0];return window.ethereum.request({method:'eth_chainId'}).then(function(id){W.chainOk=parseInt(id,16)===CHAIN_ID;walletUI();renderPreview()})}}).catch(function(){});
+  Array.prototype.forEach.call(document.querySelectorAll('[data-wallet]'),function(b){b.addEventListener('click',function(){
+    if(!(W.acct&&W.chainOk)){connect().catch(function(){});return}
+    if(PRIVY_ID&&window.confirm('Disconnect '+short(W.acct)+'?')) disconnect();
+  })});
+  if(PRIVY_ID){
+    /* muat Privy diam-diam setelah loading selesai, sekalian pulihkan login sebelumnya */
+    var pvBoot=function(){if(document.body.classList.contains('loading')){setTimeout(pvBoot,800);return}privyLoad().catch(function(){})};
+    setTimeout(pvBoot,1500);
+  }else{
+    if(window.ethereum&&window.ethereum.on){
+      window.ethereum.on('accountsChanged',function(a){W.acct=a&&a[0]||null;walletUI();renderPreview()});
+      window.ethereum.on('chainChanged',function(id){W.chainOk=parseInt(id,16)===CHAIN_ID;walletUI()});
+    }
+    if(window.ethereum&&window.ethereum.request){
+      window.ethereum.request({method:'eth_accounts'}).then(function(a){if(a&&a[0]){W.acct=a[0];return window.ethereum.request({method:'eth_chainId'}).then(function(id){W.chainOk=parseInt(id,16)===CHAIN_ID;walletUI();renderPreview()})}}).catch(function(){});
+    }
   }
 
 
@@ -1331,7 +1462,7 @@ window.NYXEN = {
     (W.acct&&W.chainOk?Promise.resolve():connect()).then(function(){
       acct=W.acct;return viem();
     }).then(function(mm){
-      m=mm;wallet=m.v.createWalletClient({account:acct,chain:m.base,transport:m.v.custom(window.ethereum)});
+      m=mm;wallet=m.v.createWalletClient({account:acct,chain:m.base,transport:m.v.custom(EP())});
       return idx.reduce(function(p,i){
         var a=FEE_ASSETS[i];
         return p.then(function(){
@@ -1426,7 +1557,7 @@ window.NYXEN = {
     TK.busy=true;tkRender();tkStat('Opening your wallet…');
     var acct,m;
     (W.acct&&W.chainOk?Promise.resolve():connect()).then(function(){acct=W.acct;return viem()}).then(function(mm){
-      m=mm;var wallet=m.v.createWalletClient({account:acct,chain:m.base,transport:m.v.custom(window.ethereum)});
+      m=mm;var wallet=m.v.createWalletClient({account:acct,chain:m.base,transport:m.v.custom(EP())});
       tkStat(kind==='burn'?'Confirm the burn in your wallet.':'Confirm the dividend claim in your wallet.');
       return kind==='burn'
         ?wallet.writeContract({address:ESCROW,abi:ESCROW_ABI,functionName:'claimFor',args:[DEAD,TK.addr]})
@@ -1660,7 +1791,7 @@ window.NYXEN = {
       return Promise.all([viem(),import(SDK),new Promise(function(r){setTimeout(r,1600)})]);
     }).then(function(r){
       var m=r[0],Clanker=r[1].Clanker;
-      var wallet=m.v.createWalletClient({account:acct,chain:m.base,transport:m.v.custom(window.ethereum)});
+      var wallet=m.v.createWalletClient({account:acct,chain:m.base,transport:m.v.custom(EP())});
       var clanker=new Clanker({wallet:wallet,publicClient:pc(m)});
       var cfg={name:name,symbol:sym,image:imgRaw,tokenAdmin:acct,context:{interface:IFACE,platform:'web'},buyFee:r1(TX.buy),sellFee:r1(TX.sell)};
       if(SH.burn>0) cfg.burn=SH.burn;
@@ -1928,7 +2059,7 @@ window.NYXEN = {
     var acct=W.acct,m,wallet,c,zf=buy?!TP.isC0:TP.isC0,minOut;
     function wait(h,label){tpStat(label+' <a href="https://basescan.org/tx/'+esc(h)+'" target="_blank" rel="noopener">View transaction</a>');return c.waitForTransactionReceipt({hash:h}).then(function(r){if(r.status!=='success') throw new Error('The transaction failed.')})}
     viem().then(function(mm){
-      m=mm;c=pc(m);wallet=m.v.createWalletClient({account:acct,chain:m.base,transport:m.v.custom(window.ethereum)});
+      m=mm;c=pc(m);wallet=m.v.createWalletClient({account:acct,chain:m.base,transport:m.v.custom(EP())});
       return c.readContract({address:V4.quoter,abi:TP_ABI.quoter,functionName:'quoteExactInputSingle',args:[{poolKey:TP.key,zeroForOne:zf,exactAmount:amt,hookData:'0x'}]});
     }).then(function(r){
       minOut=r[0]*BigInt(100-TP.slip)/100n;
