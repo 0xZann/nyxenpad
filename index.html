@@ -802,7 +802,9 @@ window.NYXEN = {
   interface: 'Nyxen',
   integrator: '',
   integratorShare: 0,
-  rpc: 'https://mainnet.base.org'
+  /* rpc: optional. Your own Base RPC link (Alchemy, QuickNode, …) is tried
+     first. Leave empty to use the free public Base RPCs below.        */
+  rpc: ''
 };
 </script>
 <script>
@@ -875,7 +877,14 @@ window.NYXEN = {
     if(!VP) VP=Promise.all([import(VIEM),import(VIEM+'/chains')]).then(function(m){return {v:m[0],base:m[1].base}}).catch(function(e){VP=null;throw e});
     return VP;
   }
-  function pc(m){if(!PC) PC=m.v.createPublicClient({chain:m.base,transport:m.v.http(CFG.rpc||undefined)});return PC}
+  /* beberapa RPC publik Base sekaligus: kalau satu kena limit, otomatis pindah ke yang lain */
+  var RPCS=['https://base-rpc.publicnode.com','https://base.drpc.org','https://mainnet.base.org','https://1rpc.io/base','https://base.llamarpc.com'];
+  function pc(m){
+    if(PC) return PC;
+    var list=(/^https:\/\//.test(CFG.rpc||'')?[CFG.rpc]:[]).concat(RPCS);
+    var tr=m.v.fallback?m.v.fallback(list.map(function(u){return m.v.http(u,{retryCount:1,timeout:12000})}),{retryCount:2}):m.v.http(list[0]);
+    PC=m.v.createPublicClient({chain:m.base,transport:tr});return PC;
+  }
 
   /* ---------- explore ---------- */
   var ex={tab:'new',lists:{},live:true,only:false,q:'',meta:{},at:0,loading:false};
@@ -906,11 +915,20 @@ window.NYXEN = {
   var LAUNCHED='event Launched(address indexed token, bytes32 indexed poolId, address indexed originalCreator, address quoteToken, uint256 launchSupply, int24 tickSpacing)';
   var ERC20=[{type:'function',name:'name',stateMutability:'view',inputs:[],outputs:[{type:'string'}]},{type:'function',name:'symbol',stateMutability:'view',inputs:[],outputs:[{type:'string'}]}];
   function loadNew(){
+    return api('/tokens?chainId='+CHAIN_ID+'&limit=20&includeMarket=true&sort=desc').then(function(j){
+      var items=(j&&j.data||[]).map(fromApi).filter(Boolean);
+      if(!items.length) throw new Error('empty');
+      items.sort(function(a,b){return (b.created||0)-(a.created||0)});
+      items.forEach(function(it){ex.meta[it.address.toLowerCase()]=it});
+      return items;
+    }).catch(function(){return loadNewChain()});
+  }
+  function loadNewChain(){
     return viem().then(function(m){
       var c=pc(m),ev=m.v.parseAbiItem(LAUNCHED);
       return c.getBlockNumber().then(function(bn){
         function range(span){return c.getLogs({address:FACTORY,event:ev,fromBlock:bn-BigInt(span),toBlock:bn})}
-        return range(4000).catch(function(){return range(1500)}).then(function(logs){
+        return range(3000).catch(function(){return range(1000)}).catch(function(){return range(400)}).then(function(logs){
           var items=logs.slice(-20).reverse().map(function(l){
             return {address:l.args.token,creator:l.args.originalCreator,created:Date.now()-Number(bn-l.blockNumber)*2000,name:'',symbol:'',img:'',mcap:null,iface:''};
           });
@@ -948,9 +966,10 @@ window.NYXEN = {
     var tab=ex.tab,key=listKey();
     var p=tab==='new'?loadNew():loadTopOrTrending(tab);
     p.then(function(items){ex.lists[key]=items;ex.at=Date.now();if(listKey()===key) render();if(tab==='new') renderHero()})
-     .catch(function(e){if(listKey()===key&&!ex.lists[key]) note('Could not load tokens',esc(e&&e.message?e.message:'Network error. Try again in a moment.'))})
+     .catch(function(){if(listKey()===key&&!ex.lists[key]){note('Base is busy right now','We could not reach the token list. Trying again in a few seconds… <br><button class="pill" type="button" data-retry style="margin-top:12px">Try again</button>');clearTimeout(load.rt);load.rt=setTimeout(load,8000)}})
      .then(function(){ex.loading=false;stamp()});
   }
+  document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('[data-retry]')){$('rows').innerHTML='<div class="skel"></div><div class="skel"></div><div class="skel"></div>';load()}});
   function loadNewForHero(){
     if(ex.tab==='new') return;
     loadNew().then(function(items){ex.lists['new']=items;renderHero()}).catch(function(){});
@@ -1757,7 +1776,7 @@ window.NYXEN = {
       return '<div class="tr'+(i<nf&&TP.trades.length>nf?' new':'')+'"><span class="s '+(t.buy?'b':'x')+'">'+(t.buy?'Buy':'Sell')+'</span><span>'+fmtEth(t.eth)+' ETH</span><span>'+fmtTok(t.tok)+'</span><a href="https://basescan.org/tx/'+esc(t.tx)+'" target="_blank" rel="noopener">'+(secs<60?secs+'s':secs<3600?Math.round(secs/60)+'m':Math.round(secs/3600)+'h')+' ↗</a></div>';
     }).join('');
   }
-  function tpStart(){tpStop();tpPoll();TP.timer=setInterval(function(){if(!document.hidden) tpPoll()},6000)}
+  function tpStart(){tpStop();tpPoll();TP.timer=setInterval(function(){if(!document.hidden) tpPoll()},8000)}
   function tpStop(){if(TP.timer){clearInterval(TP.timer);TP.timer=null}}
   function tpStat(h,k){$('tpStat').className='mf-stat'+(k?' '+k:'');$('tpStat').innerHTML=h||''}
   function tpTrade(){
