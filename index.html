@@ -297,6 +297,29 @@ html.js .reveal.in{opacity:1;transform:none}
 .toggle input:focus-visible+.sw{box-shadow:0 0 0 3px rgba(139,92,246,.4)}
 @media (max-width:640px){.toggle{margin-left:0}}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:22px}
+.tf{display:inline-flex;gap:4px;padding:3px;border-radius:12px;background:var(--panel);border:1px solid var(--line);margin-left:auto}
+.tf button{border:0;background:none;color:var(--mute);font:600 13px var(--mono);padding:6px 12px;border-radius:9px;cursor:pointer}
+.tf button.on{background:#8b5cf6;color:#fff}
+.tlist{display:grid;margin-top:18px;border-radius:22px;border:1px solid var(--line);background:rgba(13,11,37,.55);overflow:hidden}
+.tlist .skel{height:72px;border-radius:0;border:0;border-bottom:1px solid var(--line)}
+.tlist .note{border:0;border-radius:0}
+.thead,.trow{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,.8fr) minmax(0,.9fr);gap:12px;align-items:center;padding:12px 18px}
+.thead{font:500 12px var(--mono);color:var(--mute);border-bottom:1px solid var(--line);background:rgba(255,255,255,.02)}
+.thead span:not(:first-child),.trow>span:not(:first-child){text-align:right}
+.trow{width:100%;border:0;border-bottom:1px solid var(--line);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background .15s}
+.trow:last-child{border-bottom:0}
+.trow:hover,.trow:focus-visible{background:rgba(139,92,246,.08);outline:none}
+.tr-l{display:flex;align-items:center;gap:12px;min-width:0}
+.tr-l .timg{width:48px;height:48px;border-radius:14px;font-size:15px}
+.tr-nm{min-width:0;display:grid;gap:3px}
+.tr-nm b{font:600 16px var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr-nm small em{font:500 11px var(--mono);font-style:normal;color:var(--sub);background:rgba(255,255,255,.08);border-radius:6px;padding:1px 6px;margin-right:6px}
+.tr-nm small i{font-style:normal}
+.tr-nm small{font:400 12.5px var(--mono);color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trow>span:not(:first-child) b{display:block;font:600 15.5px var(--body)}
+.trow>span:not(:first-child) small{display:block;font:500 13px var(--mono);color:var(--mute);margin-top:2px}
+.trow>span:not(:first-child) small.up{color:var(--up)}.trow>span:not(:first-child) small.down{color:var(--down)}
+@media (max-width:560px){.thead,.trow{padding:11px 12px;gap:8px;grid-template-columns:minmax(0,1.6fr) minmax(0,.75fr) minmax(0,.85fr)}.tr-l{gap:10px}.tr-l .timg{width:42px;height:42px;border-radius:12px}.tr-nm .lq{display:none}.tr-nm b{font-size:15px}.trow>span:not(:first-child) b{font-size:14px}}
 .tcard{display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:20px;background:var(--panel);border:1px solid var(--line);text-align:left;color:inherit;font:inherit;cursor:pointer;width:100%;min-width:0;transition:border-color .15s,transform .2s,background .15s}
 .tcard:hover,.tcard:focus-visible{border-color:rgba(196,181,253,.45);background:var(--panel2);transform:translateY(-3px);outline:none}
 .tc-top{display:flex;gap:12px;align-items:center;min-width:0}
@@ -601,21 +624,22 @@ body.vin .v-home,body.vin .v-launch,body.vin .v-fees,body.vin .v-token{animation
 <section class="sec v-home" id="explore">
   <div class="wrap">
     <div class="sec-head reveal">
-      <div><span class="kick">Explore</span><h2 class="h2">Every new token on Base, <span class="gt">live</span>.</h2></div>
+      <div><span class="kick">Explore</span><h2 class="h2">The hottest tokens on Base, <span class="gt">live</span>.</h2></div>
     </div>
     <div class="ex-tools reveal">
       <div class="utabs" role="tablist" aria-label="Token lists">
-        <button type="button" role="tab" data-tab="new" aria-selected="true">Newborn</button>
-        <button type="button" role="tab" data-tab="top" aria-selected="false">Biggest</button>
-        <button type="button" role="tab" data-tab="trending" aria-selected="false">Hot</button>
+        <button type="button" role="tab" data-tab="trending" aria-selected="true">Trending</button>
+        <button type="button" role="tab" data-tab="top" aria-selected="false">Top</button>
+        <button type="button" role="tab" data-tab="new" aria-selected="false">New</button>
       </div>
       <div class="sbox"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input class="search" id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Find a token by name, ticker or contract" aria-label="Search tokens"></div>
     </div>
     <div class="ex-bar reveal">
       <span class="live" id="live"><i></i><span id="liveTxt">Live</span><small id="upd"></small></span>
       <button class="pill" type="button" id="pause">Pause</button>
+      <div class="tf" role="group" aria-label="Time frame"><button type="button" data-tf="h1" class="on">1h</button><button type="button" data-tf="h6">6h</button><button type="button" data-tf="h24">24h</button></div>
     </div>
-    <div class="grid" id="rows"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+    <div class="tlist" id="rows"><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
   </div>
 </section>
 
@@ -922,7 +946,7 @@ window.NYXEN = {
   }
 
   /* ---------- explore ---------- */
-  var ex={tab:'new',lists:{},live:true,only:false,q:'',meta:{},at:0,loading:false};
+  var ex={tab:'trending',tf:'h1',lists:{},live:true,only:false,q:'',meta:{},at:0,loading:false};
   function fromApi(t){
     if(!t||!t.contract_address) return null;
     var mk=(t.related&&t.related.market)||t.market||{};
@@ -942,7 +966,7 @@ window.NYXEN = {
       return r.json();
     });
   }
-  function listKey(){return ex.tab+(ex.only&&ex.tab!=='new'?':nyx':'')}
+  function listKey(){return ex.tab+(ex.tab==='trending'?':'+ex.tf:'')}
   /* ---------- semua token di Base: GeckoTerminal (gratis, tanpa key) ---------- */
   var GT='https://api.geckoterminal.com/api/v2';
   var MAJORS={'0x4200000000000000000000000000000000000006':1,'0x833589fcd6edb6e08f4c7c32d4f71b54bda02913':1,'0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca':1,'0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf':1,'0x50c5725949a6f0c72e6c4a641f24049a917db0cb':1,'0xfde4c96c8593536e31f229ea8f37b2ada2699bb2':1,'0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22':1,'0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452':1,'0x0000000000000000000000000000000000000000':1};
@@ -956,17 +980,31 @@ window.NYXEN = {
       var a=pl.attributes||{},rel=pl.relationships||{};
       var bid=rel.base_token&&rel.base_token.data&&rel.base_token.data.id||'',addr=(bid.split('_')[1]||'').toLowerCase();
       if(!/^0x[0-9a-f]{40}$/.test(addr)||MAJORS[addr]||seen[addr]) return;seen[addr]=1;
-      var tk=inc[bid]||{},pc=a.price_change_percentage||{},vu=a.volume_usd||{};
-      var nm=String(a.name||'').split(' / ')[0];
+      var tk=inc[bid]||{},pc=a.price_change_percentage||{},vu=a.volume_usd||{},txs=a.transactions||{};
+      var nm=String(a.name||'').split(' / ')[0],TX={};
+      ['m5','h1','h6','h24'].forEach(function(k){var x=txs[k];TX[k]=x?(Number(x.buys)||0)+(Number(x.sells)||0):null});
       out.push({address:tk.address||addr,name:tk.name||nm,symbol:tk.symbol||nm,img:safeImg(tk.image_url&&!/missing/i.test(tk.image_url)?tk.image_url:'')||IMG[addr]||'',
         creator:'',created:Date.parse(a.pool_created_at||'')||null,mcap:num(a.market_cap_usd)!=null?num(a.market_cap_usd):num(a.fdv_usd),
-        ch24:num(pc.h24),vol:num(vu.h24),iface:'',desc:''});
+        ch24:num(pc.h24),vol:num(vu.h24),iface:'',desc:'',liq:num(a.reserve_in_usd),
+        chg:{h1:num(pc.h1),h6:num(pc.h6),h24:num(pc.h24)},vols:{h1:num(vu.h1),h6:num(vu.h6),h24:num(vu.h24)},txs:TX});
     });
     return out;
   }
+  function good(t,min){return (t.liq||0)>=min.liq&&(t.mcap||0)>=min.mc&&(t.vols&&t.vols.h24||0)>=min.vol}
+  function gtPages(base,n){
+    var ps=[];for(var i=1;i<=n;i++) ps.push(gt(base+'&page='+i).catch(function(){return {data:[]}}));
+    return Promise.all(ps).then(function(js){
+      var seen={},out=[];js.forEach(function(j){fromGT(j).forEach(function(t){var k=t.address.toLowerCase();if(!seen[k]){seen[k]=1;out.push(t)}})});return out;
+    });
+  }
   function loadTopOrTrending(tab){
-    var path=tab==='top'?'/networks/base/pools?include=base_token&sort=h24_volume_usd_desc&page=1':'/networks/base/trending_pools?include=base_token&duration=6h&page=1';
-    return gt(path).then(function(j){var it=fromGT(j);if(!it.length) throw new Error('empty');return it}).catch(function(){return loadTopClanker(tab)});
+    var dur=ex.tf==='h24'?'24h':ex.tf==='h6'?'6h':'1h';
+    var p=tab==='top'?gtPages('/networks/base/pools?include=base_token&sort=h24_volume_usd_desc',2):gtPages('/networks/base/trending_pools?include=base_token&duration='+dur,2);
+    return p.then(function(it){
+      it=it.filter(function(t){return good(t,{liq:20000,mc:100000,vol:5000})});
+      if(tab==='top') it.sort(function(a,b){return (b.mcap||0)-(a.mcap||0)});
+      if(!it.length) throw new Error('empty');return it.slice(0,30);
+    }).catch(function(){return loadTopClanker(tab)});
   }
   function loadTopClanker(tab){
     var q='/tokens?chainId='+CHAIN_ID+'&limit=20&includeMarket=true&sort=desc&sortBy='+(tab==='top'?'market-cap':'volume-h24')+(ex.only?'&socialInterface='+encodeURIComponent(IFACE):'');
@@ -975,8 +1013,8 @@ window.NYXEN = {
   var LAUNCHED='event Launched(address indexed token, bytes32 indexed poolId, address indexed originalCreator, address quoteToken, uint256 launchSupply, int24 tickSpacing)';
   var ERC20=[{type:'function',name:'name',stateMutability:'view',inputs:[],outputs:[{type:'string'}]},{type:'function',name:'symbol',stateMutability:'view',inputs:[],outputs:[{type:'string'}]}];
   function loadNew(){
-    return gt('/networks/base/new_pools?include=base_token&page=1').then(function(j){
-      var it=fromGT(j);if(!it.length) throw new Error('empty');
+    return gtPages('/networks/base/new_pools?include=base_token',2).then(function(it){
+      it=it.filter(function(t){return good(t,{liq:5000,mc:20000,vol:1000})});if(!it.length) throw new Error('empty');
       it.sort(function(a,b){return (b.created||0)-(a.created||0)});return it;
     }).catch(function(){return loadNewClanker()});
   }
@@ -1031,9 +1069,9 @@ window.NYXEN = {
     if(ex.loading) return;ex.loading=true;
     var tab=ex.tab,key=listKey();
     var p=tab==='new'?loadNew():loadTopOrTrending(tab);
-    p.then(function(items){ex.lists[key]=items;ex.at=Date.now();if(listKey()===key) render();if(tab==='new') renderHero();dsImages(items)})
+    p.then(function(items){ex.lists[key]=items;ex.at=Date.now();if(listKey()===key) render();renderHero();dsImages(items)})
      .catch(function(){if(listKey()===key&&!ex.lists[key]){note('Base is busy right now','We could not reach the token list. Trying again in a few seconds… <br><button class="pill" type="button" data-retry style="margin-top:12px">Try again</button>');clearTimeout(load.rt);load.rt=setTimeout(load,8000)}})
-     .then(function(){ex.loading=false;stamp()});
+     .then(function(){ex.loading=false;stamp();if(listKey()!==key&&!ex.lists[listKey()]) load()});
   }
   document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('[data-retry]')){$('rows').innerHTML='<div class="skel"></div><div class="skel"></div><div class="skel"></div>';load()}});
   function loadNewForHero(){
@@ -1060,19 +1098,22 @@ window.NYXEN = {
     }
     renderList(arr);
   }
+  function age(ms){if(!ms) return '';var m=Math.max(1,Math.round((Date.now()-ms)/60000));return m<60?m+'m':m<1440?Math.round(m/60)+'h':Math.round(m/1440)+'d'}
+  function cnt(n){if(n==null) return '—';return n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?(n/1e3).toFixed(n>=1e4?1:2)+'K':String(n)}
   function renderList(arr){
-    $('rows').innerHTML=arr.map(function(t){
-      var fresh=t.created&&Date.now()-t.created<15*60000;
-      var right=ex.tab==='new'||t.ch24==null?'<span>Born</span><b>'+esc(ago(t.created)||'—')+'</b>':'<span>24h</span><b class="'+(t.ch24>=0?'up':'down')+'">'+pct(t.ch24)+'</b>';
-      return '<button class="tcard" type="button" data-addr="'+esc(t.address)+'">'+
-        '<span class="tc-top"><span class="timg">'+imgTag(t.img,t.symbol||t.name,t.address)+'</span><span class="tc-nm"><b>'+esc(t.name||short(t.address))+'</b><small>$'+esc(t.symbol||'???')+'</small></span></span>'+
-        '<span class="tags">'+(fresh?'<em class="tag new">Newborn</em>':'')+(isMine(t)?'<em class="tag ny">Nyxen</em>':'')+(t.creator?'<em class="tag">by '+esc(short(t.creator))+'</em>':'')+'</span>'+
-        '<span class="tc-bot"><span><span>Market cap</span><b>'+usd(t.mcap)+'</b></span><span class="r">'+right+'</span></span></button>';
+    var tf=ex.tf,lbl=tf==='h24'?'24h':tf==='h6'?'6h':'1h';
+    $('rows').innerHTML='<div class="thead"><span>Token · Age</span><span>Vol / TXs</span><span>MC / '+lbl+'%</span></div>'+arr.map(function(t){
+      var ch=t.chg?t.chg[tf]:(tf==='h24'?t.ch24:null),vol=t.vols?t.vols[tf]:(tf==='h24'?t.vol:null),tx=t.txs?t.txs[tf]:null,ag=age(t.created);
+      return '<button class="trow" type="button" data-addr="'+esc(t.address)+'">'+
+        '<span class="tr-l"><span class="timg">'+imgTag(t.img,t.symbol||t.name,t.address)+'</span><span class="tr-nm"><b>'+esc(t.name||short(t.address))+'</b><small>'+(ag?'<em>'+ag+'</em>':'')+'$'+esc(t.symbol||'???')+(t.liq!=null?'<i class="lq"> · Liq '+usd(t.liq)+'</i>':'')+'</small></span></span>'+
+        '<span><b>'+usd(vol)+'</b><small>'+cnt(tx)+'</small></span>'+
+        '<span><b>'+usd(t.mcap)+'</b><small class="'+(ch==null?'':ch>=0?'up':'down')+'">'+pct(ch)+'</small></span></button>';
     }).join('');
   }
   function renderHero(){
-    if(!(ex.lists['new']||[]).length) return;
-    var all=(ex.lists['new']||[]).slice(0,14);
+    var L=ex.lists[listKey()]||ex.lists['trending:h1']||ex.lists['new']||[];
+    if(!L.length) return;
+    var all=L.slice(0,14);
     var seg=all.map(function(t){return '<button class="it" type="button" data-addr="'+esc(t.address)+'"><span class="timg">'+imgTag(t.img,t.symbol||t.name,t.address)+'</span><b>$'+esc(t.symbol||'???')+'</b><em>'+usd(t.mcap)+'</em>'+esc(ago(t.created))+'</button>'}).join('');
     $('band').innerHTML=seg+seg;
   }
@@ -1120,11 +1161,18 @@ window.NYXEN = {
     });
   });
   $('q').addEventListener('input',function(e){ex.q=e.target.value.trim();render()});
+  Array.prototype.forEach.call(document.querySelectorAll('[data-tf]'),function(b){
+    b.addEventListener('click',function(){
+      ex.tf=b.getAttribute('data-tf');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-tf]'),function(x){x.classList.toggle('on',x===b)});
+      render();if(ex.tab==='trending') load();
+    });
+  });
   $('pause').addEventListener('click',function(){
     ex.live=!ex.live;$('pause').textContent=ex.live?'Pause':'Resume';$('live').classList.toggle('off',!ex.live);$('liveTxt').textContent=ex.live?'Live':'Paused';
     if(ex.live) load();
   });
-  setInterval(function(){if(ex.live&&!document.hidden&&!document.body.classList.contains('loading')){load();loadNewForHero()}},20000);
+  setInterval(function(){if(ex.live&&!document.hidden&&!document.body.classList.contains('loading')){load()}},20000);
   setInterval(stamp,1000);
 
   /* ---------- token drawer ---------- */
