@@ -104,6 +104,16 @@ section[id]{scroll-margin-top:88px}
 .tp-card{padding:18px;border-radius:22px;background:var(--panel);border:1px solid var(--line);min-width:0}
 .tp-chart{border-radius:22px;overflow:hidden;border:1px solid var(--line);background:#0b0920;height:460px;position:relative}
 .tp-chart iframe{width:100%;height:100%;border:0;display:block}
+.tp-chart{touch-action:pan-y}
+.tp-chart canvas{display:block}
+.ch-top{display:flex;align-items:center;justify-content:space-between;gap:10px;height:44px;padding:0 12px;border-bottom:1px solid var(--line)}
+.ch-res{display:flex;gap:4px}
+.ch-res button{border:0;background:none;color:var(--mute);font:600 12.5px var(--mono);padding:5px 9px;border-radius:8px;cursor:pointer}
+.ch-res button.on{background:#8b5cf6;color:#fff}
+.ch-info{font:500 11.5px var(--mono);color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ch-info b{color:var(--fg);font-weight:600}.ch-info b.up{color:var(--up)}.ch-info b.down{color:var(--down)}
+.tp-chart .wait{top:44px}
+.tp-stats b sub{font-size:.7em}
 .tp-chart .wait{position:absolute;inset:0;display:grid;place-items:center;color:var(--mute);font-size:14px;text-align:center;padding:20px;pointer-events:none}
 .tp-note{font-size:12.5px;color:var(--mute);margin:8px 2px 18px}
 .tp-ct{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -141,7 +151,15 @@ section[id]{scroll-margin-top:88px}
 .tp-stats span{display:block;font:400 11.5px var(--mono);color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
 .tp-stats b{font:600 14.5px var(--body);overflow-wrap:anywhere}
 .tp-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-@media (max-width:920px){.tp-grid{grid-template-columns:minmax(0,1fr)}.tp-side{position:static;order:-1}.tp-chart{height:380px}}
+@media (max-width:920px){
+  .tp-grid{grid-template-columns:minmax(0,1fr);gap:14px}
+  .tp-main,.tp-side{display:contents}
+  .tp-chart{order:1;height:380px}
+  .tp-note{order:2;margin:-6px 2px 0}
+  .tp-tradebox{order:3}
+  .tp-statscard{order:4}
+  .tp-tradescard{order:5}
+}
 @media (max-width:480px){.tr{grid-template-columns:44px minmax(0,1fr) minmax(0,1fr) 52px;gap:6px;font-size:12px}}
 
 /* ================= DEPLOY MODAL + LIVE NOTE ================= */
@@ -781,11 +799,11 @@ body.vin .v-home,body.vin .v-launch,body.vin .v-fees,body.vin .v-token{animation
     <div class="tp-grid">
       <div class="tp-main">
         <div class="tp-chart" id="tpChart"></div>
-        <p class="tp-note">Chart by DexScreener. A brand new token can take a minute or two to show up.</p>
-        <div class="tp-card"><div class="tp-ct"><b>Live trades</b><span class="tp-live"><i class="gdot"></i>Live</span></div><div class="tp-trades" id="tpTrades"></div></div>
+        <p class="tp-note">Chart and trades from Clanker. A brand new token shows up after its first trades.</p>
+        <div class="tp-card tp-tradescard"><div class="tp-ct"><b>Live trades</b><span class="tp-live"><i class="gdot"></i>Live</span></div><div class="tp-trades" id="tpTrades"></div></div>
       </div>
       <aside class="tp-side">
-        <div class="tp-card">
+        <div class="tp-card tp-tradebox">
           <div class="tp-tabs" role="tablist" aria-label="Trade side"><button type="button" role="tab" data-side="buy" aria-selected="true">Buy</button><button type="button" role="tab" data-side="sell" aria-selected="false">Sell</button></div>
           <div class="tp-bal"><span id="tpBalL">Balance</span><span id="tpBal">—</span></div>
           <div class="tp-in"><input id="tpAmt" inputmode="decimal" placeholder="0.0" autocomplete="off" aria-label="Amount"><span id="tpUnit">ETH</span></div>
@@ -795,7 +813,7 @@ body.vin .v-home,body.vin .v-launch,body.vin .v-fees,body.vin .v-token{animation
           <button class="btn tp-go buy" type="button" id="tpGo">Buy</button>
           <div class="mf-stat" id="tpStat" role="status" style="margin-top:10px"></div>
         </div>
-        <div class="tp-card"><div class="tp-stats" id="tpStats"></div><div class="tp-links" id="tpLinks"></div></div>
+        <div class="tp-card tp-statscard"><div class="tp-stats" id="tpStats"></div><div class="tp-links" id="tpLinks"></div></div>
       </aside>
     </div>
   </div>
@@ -853,7 +871,7 @@ body.vin .v-home,body.vin .v-launch,body.vin .v-fees,body.vin .v-token{animation
     <div class="fr"><a class="brand" href="#home"><img src="data:image/webp;base64,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" alt="Nyxen logo"><span>Nyxen</span></a><div class="fl"><a href="#explore">Explore</a><a href="#fees" data-nav="fees">Fees</a><a href="#how">How it works</a><a href="#faq">FAQ</a></div></div>
     <div class="soc"><a class="sbtn" data-social="x" target="_blank" rel="noopener" aria-label="Nyxen on X"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.75 3h3.07l-6.71 7.67L22 21h-6.18l-4.84-6.33L5.44 21H2.36l7.18-8.2L2 3h6.34l4.37 5.78L17.75 3zm-1.08 16.18h1.7L7.4 4.73H5.58l11.09 14.45z"/></svg><span>X</span><em>Soon</em></a><a class="sbtn" data-social="telegram" target="_blank" rel="noopener" aria-label="Nyxen on Telegram"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.43 4.07 2.98 11.18c-1.26.5-1.25 1.21-.23 1.52l4.74 1.48 1.83 5.62c.22.62.11.86.76.86.5 0 .72-.23 1-.5l2.29-2.23 4.77 3.52c.88.49 1.51.24 1.73-.81l3.13-14.76c.32-1.29-.5-1.87-1.35-1.48zM8.6 13.85l9.1-5.74c.45-.28.87-.13.53.18l-7.8 7.04-.3 3.24-1.53-4.72z"/></svg><span>Telegram</span><em>Soon</em></a></div>
     <div>Nyxen is an independent interface for Clanker contracts on Base. Tokens are created by users. Tokens are highly risky and can lose all value. Not financial advice.</div>
-    <div style="font:500 11px var(--mono);opacity:.55">Build 2026.11.18-g</div>
+    <div style="font:500 11px var(--mono);opacity:.55">Build 2026.11.18-i</div>
   </div>
 </footer>
 
@@ -967,26 +985,9 @@ window.NYXEN = {
     return av(sym,addr)+'<img src="'+esc(src)+'" alt="" decoding="async" referrerpolicy="no-referrer"'+(LOADED[src]?' class="ok"':'')+' onload="nyOk(this)" onerror="nyAv(this)">';
   }
   function preload(items){(items||[]).slice(0,30).forEach(function(t){var u=t.img||IMG[t.address.toLowerCase()];if(u&&!LOADED[u]){var im=new Image();im.referrerPolicy='no-referrer';im.onload=function(){LOADED[u]=1};im.src=u}})}
-  /* gambar token dari DexScreener (gratis, 30 token per panggilan) */
-  var IMG={},IMGTRY={};
-  function dsImages(items){
-    var need=(items||[]).filter(function(t){var k=t.address.toLowerCase();return !t.img&&!IMG[k]&&!IMGTRY[k]}).slice(0,30);
-    if(!need.length) return;
-    need.forEach(function(t){IMGTRY[t.address.toLowerCase()]=1});
-    fetch('https://api.dexscreener.com/tokens/v1/base/'+need.map(function(t){return t.address}).join(','),{headers:{accept:'application/json'}})
-      .then(function(r){if(!r.ok) throw 0;return r.json()}).then(function(arr){
-        var got=0;
-        (Array.isArray(arr)?arr:(arr&&arr.pairs)||[]).forEach(function(pr){
-          var u=pr&&pr.info&&safeImg(pr.info.imageUrl||'');if(!u) return;
-          [pr.baseToken,pr.quoteToken].forEach(function(tk){var k=tk&&String(tk.address||'').toLowerCase();if(k&&IMGTRY[k]&&!IMG[k]){IMG[k]=u;got++}});
-        });
-        if(!got) return;
-        Object.keys(ex.lists).forEach(function(key){(ex.lists[key]||[]).forEach(function(t){var u=IMG[t.address.toLowerCase()];if(u&&!t.img) t.img=u})});
-        Object.keys(ex.meta).forEach(function(k){if(IMG[k]&&ex.meta[k]&&!ex.meta[k].img) ex.meta[k].img=IMG[k]});
-        if(ex.q&&ex.found) renderList(ex.found);else render();
-        renderHero();
-      }).catch(function(){});
-  }
+  var IMG={};
+  function dsImages(){}
+
   function toast(m){var el=$('toast');el.textContent=m;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove('on')},4200)}
   function lock(){document.body.style.overflow=($('drawer').classList.contains('open')||$('menu').classList.contains('open'))?'hidden':''}
 
@@ -1048,7 +1049,7 @@ window.NYXEN = {
       ch24:num(mk.priceChangePercent24h),vol:num(mk.volume24h),iface:String(sc.interface||''),
       liq:num(mk.liquidityUsd),chg:{h1:num(mk.priceChangePercent1h),h24:num(mk.priceChangePercent24h)},vols:{h24:num(mk.volume24h)},
       txs:{h24:num(mk.txCount24h!=null?mk.txCount24h:mk.transactions24h)},
-      desc:(t.metadata&&t.metadata.description)||t.description||''
+      desc:(t.metadata&&t.metadata.description)||t.description||'',pool:t.pool_address||t.pool_id||''
     };
   }
   function api(path){
@@ -1058,45 +1059,8 @@ window.NYXEN = {
     });
   }
   function listKey(){return ex.tab}
-  /* ---------- semua token di Base: GeckoTerminal (gratis, tanpa key) ---------- */
-  var GT='https://api.geckoterminal.com/api/v2';
   var MAJORS={'0x4200000000000000000000000000000000000006':1,'0x833589fcd6edb6e08f4c7c32d4f71b54bda02913':1,'0xd9aaec86b65d86f6a7b5b1b0c42ffa531710b6ca':1,'0xcbb7c0000ab88b473b1f5afd9ef808440eed33bf':1,'0x50c5725949a6f0c72e6c4a641f24049a917db0cb':1,'0xfde4c96c8593536e31f229ea8f37b2ada2699bb2':1,'0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22':1,'0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452':1,'0x0000000000000000000000000000000000000000':1};
-  function gt(path){
-    return fetch(GT+path,{headers:{accept:'application/json'}}).then(function(r){if(!r.ok) throw new Error('gt '+r.status);return r.json()});
-  }
-  function fromGT(j){
-    var inc={};(j&&j.included||[]).forEach(function(t){if(t&&t.attributes) inc[t.id]=t.attributes});
-    var seen={},out=[];
-    (j&&j.data||[]).forEach(function(pl){
-      var a=pl.attributes||{},rel=pl.relationships||{};
-      var bid=rel.base_token&&rel.base_token.data&&rel.base_token.data.id||'',addr=(bid.split('_')[1]||'').toLowerCase();
-      if(!/^0x[0-9a-f]{40}$/.test(addr)||MAJORS[addr]||seen[addr]) return;seen[addr]=1;
-      var tk=inc[bid]||{},pc=a.price_change_percentage||{},vu=a.volume_usd||{},txs=a.transactions||{};
-      var nm=String(a.name||'').split(' / ')[0],TX={};
-      ['m5','h1','h6','h24'].forEach(function(k){var x=txs[k];TX[k]=x?(Number(x.buys)||0)+(Number(x.sells)||0):null});
-      out.push({address:tk.address||addr,name:tk.name||nm,symbol:tk.symbol||nm,img:safeImg(tk.image_url&&!/missing/i.test(tk.image_url)?tk.image_url:'')||IMG[addr]||'',
-        creator:'',created:Date.parse(a.pool_created_at||'')||null,mcap:num(a.market_cap_usd)!=null?num(a.market_cap_usd):num(a.fdv_usd),
-        ch24:num(pc.h24),vol:num(vu.h24),iface:'',desc:'',liq:num(a.reserve_in_usd),
-        chg:{h1:num(pc.h1),h6:num(pc.h6),h24:num(pc.h24)},vols:{h1:num(vu.h1),h6:num(vu.h6),h24:num(vu.h24)},txs:TX});
-    });
-    return out;
-  }
-  function good(t,min){return (t.liq||0)>=min.liq&&(t.mcap||0)>=min.mc&&(t.vols&&t.vols.h24||0)>=min.vol}
-  function gtPages(base,n){
-    var ps=[];for(var i=1;i<=n;i++) ps.push(gt(base+'&page='+i).catch(function(){return {data:[]}}));
-    return Promise.all(ps).then(function(js){
-      var seen={},out=[];js.forEach(function(j){fromGT(j).forEach(function(t){var k=t.address.toLowerCase();if(!seen[k]){seen[k]=1;out.push(t)}})});return out;
-    });
-  }
-  function loadTopOrTrending(tab){
-    var dur=ex.tf==='h24'?'24h':ex.tf==='h6'?'6h':'1h';
-    var p=tab==='top'?gtPages('/networks/base/pools?include=base_token&sort=h24_volume_usd_desc',2):gtPages('/networks/base/trending_pools?include=base_token&duration='+dur,2);
-    return p.then(function(it){
-      it=it.filter(function(t){return good(t,{liq:20000,mc:100000,vol:5000})});
-      if(tab==='top') it.sort(function(a,b){return (b.mcap||0)-(a.mcap||0)});
-      if(!it.length) throw new Error('empty');return it.slice(0,30);
-    }).catch(function(){return loadTopClanker(tab)});
-  }
+  function good(){return true}
   /* Trending dari Clanker (/tokens/trending), Top & Most traded dari /tokens */
   function fromTrending(j){
     var toks=(j&&j.tokens)||{},out=[],seen={};
@@ -1128,7 +1092,7 @@ window.NYXEN = {
       var it=(j.data||[]).map(fromApi).filter(Boolean);it.forEach(function(t){ex.meta[t.address.toLowerCase()]=t});return it;
     });
     return p.then(function(it){if(!it.length) throw new Error('empty');return it})
-      .catch(function(){return loadTopOrTrending(tab==='traded'?'top':tab)}); /* cadangan: GeckoTerminal */
+      .catch(function(){return tab==='trending'?loadTab('traded'):Promise.reject(new Error('busy'))});
   }
   function loadTopClanker(tab){
     var q='/tokens?chainId='+CHAIN_ID+'&limit=20&includeMarket=true&sort=desc&sortBy='+(tab==='top'?'market-cap':'volume-h24')+(ex.only?'&socialInterface='+encodeURIComponent(IFACE):'');
@@ -1137,19 +1101,13 @@ window.NYXEN = {
   var LAUNCHED='event Launched(address indexed token, bytes32 indexed poolId, address indexed originalCreator, address quoteToken, uint256 launchSupply, int24 tickSpacing)';
   var ERC20=[{type:'function',name:'name',stateMutability:'view',inputs:[],outputs:[{type:'string'}]},{type:'function',name:'symbol',stateMutability:'view',inputs:[],outputs:[{type:'string'}]}];
   function loadNew(){
-    return loadNewClanker2().catch(function(){return loadNewGT()});
+    return loadNewClanker2().catch(function(){return loadNewChain()});
   }
   function loadNewClanker2(){
     return api('/tokens?chainId='+CHAIN_ID+'&limit=20&includeMarket=true&sort=desc').then(function(j){
       var it=(j&&j.data||[]).map(fromApi).filter(Boolean);if(!it.length) throw new Error('empty');
       it.sort(function(a,b){return (b.created||0)-(a.created||0)});it.forEach(function(t){ex.meta[t.address.toLowerCase()]=t});return it;
     });
-  }
-  function loadNewGT(){
-    return gtPages('/networks/base/new_pools?include=base_token',2).then(function(it){
-      it=it.filter(function(t){return good(t,{liq:5000,mc:20000,vol:1000})});if(!it.length) throw new Error('empty');
-      it.sort(function(a,b){return (b.created||0)-(a.created||0)});return it;
-    }).catch(function(){return loadNewClanker()});
   }
   function loadNewClanker(){
     return api('/tokens?chainId='+CHAIN_ID+'&limit=20&includeMarket=true&sort=desc').then(function(j){
@@ -1282,10 +1240,10 @@ window.NYXEN = {
   var sT=null,sCache={};
   function searchAll(q){
     if(sCache[q]){showFound(q,sCache[q]);return}
-    note('Searching all of Base…');clearTimeout(sT);
+    note('Searching Clanker…');clearTimeout(sT);
     sT=setTimeout(function(){
-      gt('/search/pools?query='+encodeURIComponent(q.replace(/^\$/,''))+'&network=base&include=base_token&page=1').then(function(j){
-        var it=fromGT(j);sCache[q]=it;if(ex.q.toLowerCase()===q) showFound(q,it);
+      api('/tokens?chainId='+CHAIN_ID+'&limit=20&includeMarket=true&q='+encodeURIComponent(q.replace(/^\$/,''))).then(function(j){
+        var it=(j&&j.data||[]).map(fromApi).filter(Boolean);sCache[q]=it;if(ex.q.toLowerCase()===q) showFound(q,it);
       }).catch(function(){
         if(ex.q.toLowerCase()!==q) return;
         if(/^0x[0-9a-f]{40}$/.test(q)) searchAddr(q);else note('Search failed','Could not reach the token list. Try again in a moment.');
@@ -1353,7 +1311,6 @@ window.NYXEN = {
         '<a class="btn pri" href="#token/'+a+'">Trade on Nyxen</a>'+
         '<a class="btn" href="https://app.uniswap.org/swap?chain=base&outputCurrency='+a+'" target="_blank" rel="noopener">Uniswap</a>'+
         '<a class="btn" href="https://clanker.world/clanker/'+a+'" target="_blank" rel="noopener">Clanker</a>'+
-        '<a class="btn" href="https://dexscreener.com/base/'+a+'" target="_blank" rel="noopener">DexScreener</a>'+
         '<a class="btn" href="https://gmgn.ai/base/token/'+a+'" target="_blank" rel="noopener">GMGN</a>'+
         '<a class="btn" href="https://basescan.org/token/'+a+'" target="_blank" rel="noopener">Basescan</a>'+
         (t.creator?'<a class="btn" href="https://basescan.org/address/'+esc(t.creator)+'" target="_blank" rel="noopener">Creator</a>':'')+
@@ -1974,7 +1931,6 @@ window.NYXEN = {
         fStat('<b>$'+esc(sym)+' just hopped onto Base.</b><br><code style="font-size:13px;overflow-wrap:anywhere">'+esc(a)+'</code><div class="links">'+
           '<a href="https://clanker.world/clanker/'+a+'" target="_blank" rel="noopener">Clanker</a>'+
           '<a href="https://app.uniswap.org/swap?chain=base&outputCurrency='+a+'" target="_blank" rel="noopener">Uniswap</a>'+
-          '<a href="https://dexscreener.com/base/'+a+'" target="_blank" rel="noopener">DexScreener</a>'+
           '<a href="https://basescan.org/token/'+a+'" target="_blank" rel="noopener">Basescan</a></div>','ok');
         dmDone(sym,a);liveNote(sym,a);
         $('lf').reset();photoReset();txReset();renderPreview();
@@ -2062,16 +2018,17 @@ window.NYXEN = {
     if(!/^0x[0-9a-fA-F]{40}$/.test(a)){TP.addr='';$('tpHead').innerHTML='<div class="note"><b>That link has no valid token address.</b></div>';return}
     if(TP.addr.toLowerCase()===a.toLowerCase()&&TP.ready){tpHead();tpSideUI();tpStart();return}
     var my=++TP.seq;
-    TP.addr=a;TP.ready=false;TP.err='';TP.key=null;TP.trades=[];TP.seen={};TP.from=0n;TP.price=null;TP.mcap=null;TP.tax=null;TP.ethBal=null;TP.tokBal=null;TP.quote=null;
+    TP.addr=a;TP.ready=false;TP.err='';TP.key=null;TP.trades=[];TP.seen={};TP.mk=null;TP.pool='';TP.poolId='';TP.clkTrades=false;TP.from=0n;TP.price=null;TP.mcap=null;TP.tax=null;TP.ethBal=null;TP.tokBal=null;TP.quote=null;
     var t=findTok(a)||{};TP.sym=t.symbol||'';TP.name=t.name||'';TP.img=t.img||'';TP.mcap=t.mcap!=null?t.mcap:null;
     $('tpAmt').value='';tpHead();tpStats();tpSideUI();$('tpStat').innerHTML='';
     $('tpTrades').innerHTML='<p class="mf-foot">Loading trades…</p>';
-    $('tpChart').innerHTML='<div class="wait">Loading chart…</div><iframe title="Price chart" loading="lazy" src="https://dexscreener.com/base/'+a+'?embed=1&loadChartSettings=0&trades=0&tabs=0&info=0&chartLeftToolbar=0&chartTheme=dark&theme=dark&chartStyle=1&chartType=usd&interval=15"></iframe>';
-    api('/tokens?chainId='+CHAIN_ID+'&q='+a).then(function(j){
+    TP.pool=t.pool||'';chReset();
+        api('/tokens?chainId='+CHAIN_ID+'&q='+a).then(function(j){
       var it=(j&&j.data||[]).map(fromApi).filter(Boolean).filter(function(x){return x.address.toLowerCase()===a.toLowerCase()})[0];
       if(!it||my!==TP.seq) return;
-      TP.img=it.img||TP.img;TP.name=TP.name||it.name;TP.sym=TP.sym||it.symbol;if(it.mcap!=null) TP.mcap=it.mcap;tpHead();tpStats();
+      TP.img=it.img||TP.img;TP.name=TP.name||it.name;TP.sym=TP.sym||it.symbol;if(it.mcap!=null) TP.mcap=it.mcap;if(it.pool&&!TP.pool){TP.pool=it.pool;chLoad()}tpHead();tpStats();
     }).catch(function(){});
+    tpStart();
     var m;
     viem().then(function(mm){
       m=mm;var c=pc(m);
@@ -2101,7 +2058,7 @@ window.NYXEN = {
         if(String(id).toLowerCase()===String(o.pid).toLowerCase()) key=k;
       }
       if(!key) throw new Error('no-key');
-      TP.key=key;TP.poolId=o.pid;TP.isC0=isC0;TP.ready=true;
+      TP.key=key;TP.poolId=o.pid;TP.isC0=isC0;TP.ready=true;if(!CH.bars.length) chLoad();
       tpStats();tpStart();tpQuote();
     }).catch(function(e){
       if(my!==TP.seq) return;
@@ -2113,16 +2070,21 @@ window.NYXEN = {
     var a=TP.addr;
     $('tpHead').innerHTML='<span class="tp-img">'+imgTag(TP.img,TP.sym||TP.name,TP.addr)+'</span><div class="tp-nm"><h1>'+esc(TP.name||'Loading…')+'</h1><p>$'+esc(TP.sym||'…')+'<span class="tp-live"><i class="gdot"></i>Live on Base</span></p></div>'+
       '<div class="tp-ca"><code>'+esc(a)+'</code><button class="btn sm" type="button" data-copy="'+esc(a)+'">Copy CA</button></div>';
-    $('tpLinks').innerHTML='<a class="btn sm" href="https://dexscreener.com/base/'+a+'" target="_blank" rel="noopener">DexScreener</a><a class="btn sm" href="https://app.uniswap.org/swap?chain=base&outputCurrency='+a+'" target="_blank" rel="noopener">Uniswap</a><a class="btn sm" href="https://clanker.world/clanker/'+a+'" target="_blank" rel="noopener">Clanker</a><a class="btn sm" href="https://basescan.org/token/'+a+'" target="_blank" rel="noopener">Basescan</a>';
+    $('tpLinks').innerHTML='<a class="btn sm" href="https://app.uniswap.org/swap?chain=base&outputCurrency='+a+'" target="_blank" rel="noopener">Uniswap</a><a class="btn sm" href="https://clanker.world/clanker/'+a+'" target="_blank" rel="noopener">Clanker</a><a class="btn sm" href="https://basescan.org/token/'+a+'" target="_blank" rel="noopener">Basescan</a>';
     document.title=TP.sym?'$'+TP.sym+' – NYXEN Launchpad':'Token – NYXEN Launchpad';
   }
   function fmtTok(x){if(x==null) return '—';if(x>=1e9) return (x/1e9).toFixed(2)+'B';if(x>=1e6) return (x/1e6).toFixed(2)+'M';if(x>=1e3) return (x/1e3).toFixed(2)+'K';return x>=1?x.toFixed(2):x.toPrecision(3)}
   function fmtEth(x){if(x==null) return '—';if(x===0) return '0';if(x<1e-6) return x.toExponential(2);return x<1?x.toPrecision(4).replace(/0+$/,'').replace(/\.$/,''):x.toFixed(4).replace(/0+$/,'').replace(/\.$/,'')}
+  function pxUsd(n){if(n==null) return '—';if(n>=1) return '$'+n.toFixed(n>=100?2:4);var z=Math.floor(-Math.log10(n));return z>=4?'$0.0<sub>'+z+'</sub>'+String(Math.round(n*Math.pow(10,z+3))):'$'+n.toPrecision(3)}
   function tpStats(){
-    var px=TP.price;
+    var px=TP.price,mk=TP.mk||{};
     $('tpStats').innerHTML=
-      '<div><span>Price</span><b>'+(px?fmtEth(px)+' ETH':'—')+'</b></div>'+
+      '<div><span>Price</span><b>'+(mk.priceUsd!=null?pxUsd(mk.priceUsd):px?fmtEth(px)+' ETH':'—')+'</b></div>'+
       '<div><span>Market cap</span><b>'+(TP.mcap!=null?usd(TP.mcap):px?fmtEth(px*1e9)+' ETH':'—')+'</b></div>'+
+      '<div><span>24h</span><b class="'+(mk.ch24==null?'':mk.ch24>=0?'up':'down')+'">'+pct(mk.ch24)+'</b></div>'+
+      '<div><span>Holders</span><b>'+(mk.holders!=null?cnt(mk.holders):'—')+'</b></div>'+
+      '<div><span>Liquidity</span><b>'+usd(mk.liq)+'</b></div>'+
+      '<div><span>Volume 24h</span><b>'+usd(mk.vol)+'</b></div>'+
       '<div><span>Buy tax</span><b>'+(TP.tax?fmtP(TP.tax.buy):'—')+'</b></div>'+
       '<div><span>Sell tax</span><b>'+(TP.tax?fmtP(TP.tax.sell):'—')+'</b></div>';
   }
@@ -2171,7 +2133,36 @@ window.NYXEN = {
       .then(function(r){if(W.acct===who){TP.ethBal=r[0];TP.tokBal=r[1]}tpSideUI()}).catch(function(){tpSideUI()});
   }
   function tpPoll(){
-    if(!TP.ready||document.body.getAttribute('data-view')!=='token') return;
+    if(!TP.addr||document.body.getAttribute('data-view')!=='token') return;
+    var a=TP.addr;
+    api('/tokens/'+a+'/market?chainId='+CHAIN_ID).then(function(j){
+      if(TP.addr!==a||!j) return;var mk=j.market||{};
+      TP.mk={priceUsd:num(mk.priceUsd),ch24:num(mk.priceChangePercent24h),liq:num(mk.liquidityUsd),vol:num(mk.volume24h),holders:j.holders!=null?Number(j.holders):null};
+      if(num(mk.marketCap)!=null) TP.mcap=num(mk.marketCap);tpStats();
+    }).catch(function(){});
+    api('/tokens/'+a+'/trades').then(function(j){
+      if(TP.addr!==a) return;
+      if(!j||j.available===false||!Array.isArray(j.trades||j.data)) throw new Error('na');
+      TP.clkTrades=true;tpClkTrades(j.trades||j.data);
+    }).catch(function(){TP.clkTrades=false;tpChainPoll()});
+    if(CH.bars.length) chLoad(true);
+    tpBalances();
+  }
+  function tpClkTrades(list){
+    var fresh=0,first=!TP.trades.length;
+    var arr=list.slice(0,40).map(function(t){
+      var id=t.id||t.txHash;if(!TP.seen[id]){TP.seen[id]=1;fresh++}
+      return {buy:String(t.side).toLowerCase()==='buy',usd:num(t.valueUsd),tok:num(t.amount),ts:Number(t.timestamp)*1000,tx:t.txHash,maker:t.maker,id:id};
+    });
+    TP.trades=arr;
+    if(!arr.length){$('tpTrades').innerHTML='<p class="mf-foot">No trades yet. New trades show up here live.</p>';return}
+    var nf=first?0:fresh;
+    $('tpTrades').innerHTML=arr.map(function(t,i){
+      return '<div class="tr'+(i<nf?' new':'')+'"><span class="s '+(t.buy?'b':'x')+'">'+(t.buy?'Buy':'Sell')+'</span><span>'+(t.usd!=null?usd(t.usd):'—')+'</span><span>'+fmtTok(t.tok)+'</span><a href="https://basescan.org/tx/'+esc(t.tx||'')+'" target="_blank" rel="noopener">'+esc(ago(t.ts)||'now')+' ↗</a></div>';
+    }).join('');
+  }
+  function tpChainPoll(){
+    if(!TP.ready) {if(!TP.trades.length) $('tpTrades').innerHTML='<p class="mf-foot">No trades to show yet.</p>';return}
     viem().then(function(m){
       var c=pc(m);
       return Promise.all([c.getBlockNumber(),c.readContract({address:V4.state,abi:TP_ABI.state,functionName:'getSlot0',args:[TP.poolId]})]).then(function(r){
@@ -2184,7 +2175,6 @@ window.NYXEN = {
         });
       });
     }).catch(function(){if(!TP.trades.length) $('tpTrades').innerHTML='<p class="mf-foot">Live trades are not available right now.</p>'});
-    tpBalances();
   }
   function tpAddTrades(logs){
     var fresh=[];
@@ -2205,7 +2195,7 @@ window.NYXEN = {
       return '<div class="tr'+(i<nf&&TP.trades.length>nf?' new':'')+'"><span class="s '+(t.buy?'b':'x')+'">'+(t.buy?'Buy':'Sell')+'</span><span>'+fmtEth(t.eth)+' ETH</span><span>'+fmtTok(t.tok)+'</span><a href="https://basescan.org/tx/'+esc(t.tx)+'" target="_blank" rel="noopener">'+(secs<60?secs+'s':secs<3600?Math.round(secs/60)+'m':Math.round(secs/3600)+'h')+' ↗</a></div>';
     }).join('');
   }
-  function tpStart(){tpStop();tpPoll();TP.timer=setInterval(function(){if(!document.hidden) tpPoll()},8000)}
+  function tpStart(){tpStop();tpPoll();TP.timer=setInterval(function(){if(!document.hidden) tpPoll()},10000)}
   function tpStop(){if(TP.timer){clearInterval(TP.timer);TP.timer=null}}
   function tpStat(h,k){$('tpStat').className='mf-stat'+(k?' '+k:'');$('tpStat').innerHTML=h||''}
   function tpTrade(){
@@ -2270,6 +2260,74 @@ window.NYXEN = {
   $('tpGo').addEventListener('click',tpTrade);
   var tpWho=null;
   function tpSync(){if(W.acct!==tpWho){tpWho=W.acct;TP.ethBal=null;TP.tokBal=null;if(document.body.getAttribute('data-view')==='token') tpBalances();else tpSideUI()}}
+
+
+  /* ---------- chart harga sendiri (candle) dari data OHLCV Clanker ---------- */
+  var CH={res:'15',bars:[],seq:0,hover:-1,pools:[]};
+  function chReset(){
+    CH.bars=[];CH.hover=-1;CH.seq++;
+    $('tpChart').innerHTML='<div class="ch-top"><div class="ch-res">'+[['1','1m'],['5','5m'],['15','15m'],['60','1h']].map(function(r){return '<button type="button" data-res="'+r[0]+'"'+(r[0]===CH.res?' class="on"':'')+'>'+r[1]+'</button>'}).join('')+'</div><div class="ch-info" id="chInfo"></div></div><canvas id="chCv"></canvas><div class="wait" id="chWait">Loading chart…</div>';
+    if(TP.pool) chLoad();
+  }
+  function chLoad(quiet){
+    var pools=[TP.pool,TP.poolId].filter(function(x,i,a){return x&&a.indexOf(x)===i});
+    if(!pools.length){return}
+    var my=CH.seq,a=TP.addr,res=CH.res,step=Number(res)*60,to=Math.floor(Date.now()/1000/step)*step+step;
+    function tryP(i){
+      if(i>=pools.length) return Promise.resolve(null);
+      return api('/tokens/ohlcv?network=base&pool='+pools[i]+'&token='+a+'&resolution='+res+'&to='+to+'&countback=160').then(function(j){
+        var b=(j&&j.bars||[]).filter(function(x){return x&&isFinite(x.close)});
+        return b.length?b:tryP(i+1);
+      }).catch(function(){return tryP(i+1)});
+    }
+    tryP(0).then(function(bars){
+      if(my!==CH.seq||TP.addr!==a) return;
+      var w=$('chWait');
+      if(!bars){if(!CH.bars.length&&w){w.textContent='No chart yet. It appears after the first trades.';w.hidden=false}return}
+      CH.bars=bars.map(function(x){return {t:Number(x.time),o:+x.open,h:+x.high,l:+x.low,c:+x.close,v:+x.volume||0}});
+      if(w) w.hidden=true;chDraw();
+    });
+  }
+  function chFmt(n){if(!isFinite(n)) return '';if(n>=1) return n.toFixed(n>=100?2:4);var z=Math.floor(-Math.log10(n));return z>=4?'0.0'+String(z).replace(/\d/g,function(d){return '₀₁₂₃₄₅₆₇₈₉'[d]})+String(Math.round(n*Math.pow(10,z+3))):n.toPrecision(3)}
+  function chDraw(){
+    var cv=$('chCv');if(!cv||!CH.bars.length) return;
+    var box=$('tpChart'),W=box.clientWidth,H=box.clientHeight-44,d=Math.min(2,window.devicePixelRatio||1);
+    cv.width=W*d;cv.height=H*d;cv.style.width=W+'px';cv.style.height=H+'px';
+    var x=cv.getContext('2d');x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,W,H);
+    var PR=68,PB=22,cw=W-PR,ch=H-PB,volH=ch*.18;
+    var n=Math.max(20,Math.min(CH.bars.length,Math.floor(cw/7))),bars=CH.bars.slice(-n),hi=-Infinity,lo=Infinity,vmax=0;
+    bars.forEach(function(b){hi=Math.max(hi,b.h);lo=Math.min(lo,b.l);vmax=Math.max(vmax,b.v)});
+    if(hi===lo){hi*=1.01;lo*=.99}
+    var pad=(hi-lo)*.08;hi+=pad;lo-=pad;
+    var Y=function(v){return (hi-v)/(hi-lo)*(ch-volH-18)+12},slot=cw/n,bw=Math.max(1.5,slot*.62);
+    x.font='11px DM Mono, ui-monospace, monospace';x.textBaseline='middle';
+    for(var g=0;g<=4;g++){var gv=lo+(hi-lo)*g/4,gy=Y(gv);x.strokeStyle='rgba(255,255,255,.06)';x.beginPath();x.moveTo(0,gy);x.lineTo(cw,gy);x.stroke();x.fillStyle='rgba(255,255,255,.45)';x.fillText(chFmt(gv),cw+8,gy)}
+    bars.forEach(function(b,i){
+      var cx=i*slot+slot/2,up=b.c>=b.o,col=up?'#34e3a5':'#ff6b88';
+      if(vmax>0){x.fillStyle=up?'rgba(52,227,165,.18)':'rgba(255,107,136,.18)';var vh=b.v/vmax*volH;x.fillRect(cx-bw/2,ch-vh,bw,vh)}
+      x.strokeStyle=col;x.lineWidth=1;x.beginPath();x.moveTo(cx,Y(b.h));x.lineTo(cx,Y(b.l));x.stroke();
+      var y1=Y(Math.max(b.o,b.c)),y2=Y(Math.min(b.o,b.c));x.fillStyle=col;x.fillRect(cx-bw/2,y1,bw,Math.max(1,y2-y1));
+    });
+    var last=bars[bars.length-1],ly=Y(last.c),up=last.c>=last.o;
+    x.setLineDash([3,3]);x.strokeStyle=up?'rgba(52,227,165,.6)':'rgba(255,107,136,.6)';x.beginPath();x.moveTo(0,ly);x.lineTo(cw,ly);x.stroke();x.setLineDash([]);
+    x.fillStyle=up?'#34e3a5':'#ff6b88';x.fillRect(cw+2,ly-9,PR-4,18);x.fillStyle='#07061a';x.fillText(chFmt(last.c),cw+7,ly);
+    x.fillStyle='rgba(255,255,255,.4)';x.textBaseline='alphabetic';
+    for(var k=0;k<4;k++){var bi=Math.floor((k+.5)*n/4),bb=bars[bi];if(!bb) continue;var dt=new Date(bb.t*1000),lab=CH.res==='60'?(dt.getDate()+'/'+(dt.getMonth()+1)+' '+String(dt.getHours()).padStart(2,'0')+'h'):String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');x.fillText(lab,bi*slot,H-6)}
+    var hv=CH.hover>=0&&CH.hover<bars.length?bars[CH.hover]:last;
+    if(CH.hover>=0&&bars[CH.hover]){var hx=CH.hover*slot+slot/2;x.strokeStyle='rgba(255,255,255,.25)';x.beginPath();x.moveTo(hx,0);x.lineTo(hx,ch);x.stroke()}
+    var chg=hv.o?((hv.c-hv.o)/hv.o*100):0;
+    $('chInfo').innerHTML='O <b>'+chFmt(hv.o)+'</b> H <b>'+chFmt(hv.h)+'</b> L <b>'+chFmt(hv.l)+'</b> C <b class="'+(chg>=0?'up':'down')+'">'+chFmt(hv.c)+'</b>';
+    CH.n=n;CH.slot=slot;
+  }
+  document.addEventListener('click',function(e){
+    var r=e.target.closest&&e.target.closest('[data-res]');if(!r) return;
+    CH.res=r.getAttribute('data-res');Array.prototype.forEach.call(document.querySelectorAll('[data-res]'),function(b){b.classList.toggle('on',b===r)});
+    CH.bars=[];CH.seq++;var w=$('chWait');if(w){w.textContent='Loading chart…';w.hidden=false}var cv=$('chCv');if(cv) cv.getContext('2d').clearRect(0,0,cv.width,cv.height);chLoad();
+  });
+  function chHover(e){var cv=$('chCv');if(!cv||!CH.slot) return;var r=cv.getBoundingClientRect(),px=(e.touches?e.touches[0].clientX:e.clientX)-r.left;CH.hover=Math.floor(px/CH.slot);if(CH.hover>=CH.n) CH.hover=-1;chDraw()}
+  $('tpChart').addEventListener('pointermove',chHover);
+  $('tpChart').addEventListener('pointerleave',function(){CH.hover=-1;chDraw()});
+  window.addEventListener('resize',function(){if(document.body.getAttribute('data-view')==='token') chDraw()});
 
   /* ---------- reveal ---------- */
   var rv=document.querySelectorAll('.reveal');
